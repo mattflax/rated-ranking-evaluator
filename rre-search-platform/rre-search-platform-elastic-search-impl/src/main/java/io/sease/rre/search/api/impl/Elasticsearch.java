@@ -20,10 +20,17 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.analysis.common.CommonAnalysisPlugin;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.LoggingDeprecationHandler;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.plugins.PluginsService;
+import org.elasticsearch.plugins.SearchPlugin;
+import org.elasticsearch.search.SearchModule;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.transport.Netty4Plugin;
 
@@ -50,14 +57,18 @@ import static org.elasticsearch.node.InternalSettingsPreparer.prepareEnvironment
 public class Elasticsearch implements SearchPlatform {
     private static final Logger LOGGER = LogManager.getLogger(Elasticsearch.class);
 
-    private static class RRENode extends Node {
+    protected static class RRENode extends Node {
         RRENode(final Settings settings, final Collection<Class<? extends Plugin>> plugins) {
             super(prepareEnvironment(settings, null), plugins);
+        }
+
+        public PluginsService getPlugins() {
+            return getPluginsService();
         }
     }
 
     private Client proxy;
-    private Node elasticsearch;
+    protected RRENode elasticsearch;
     private final ObjectMapper mapper = new ObjectMapper();
 
     private File nodeConfigFolder;
@@ -97,6 +108,7 @@ public class Elasticsearch implements SearchPlatform {
                 .put("path.logs", logsFolder.getAbsolutePath())
                 .put("path.data", dataFolder.getAbsolutePath())
                 .put("cluster.name", "rre_" + System.currentTimeMillis());
+
         elasticsearch = new RRENode(settings.build(), plugins(configuration));
     }
 
@@ -213,11 +225,16 @@ public class Elasticsearch implements SearchPlatform {
     }
 
     SearchRequest buildSearchRequest(final String indexName, final String query, final String[] fields, final int maxRows) throws IOException {
-        final String q = mapper.writeValueAsString(mapper.readTree(query).get("query"));
-        final SearchSourceBuilder qBuilder = new SearchSourceBuilder()
-                .query(QueryBuilders.wrapperQuery(q))
-                .size(maxRows)
-                .fetchSource(fields, null);
+        final SearchModule module = new SearchModule(Settings.EMPTY, false, elasticsearch.getPlugins().filterPlugins(SearchPlugin.class));
+        final SearchSourceBuilder qBuilder = new SearchSourceBuilder();
+        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+                .createParser(new NamedXContentRegistry(module.getNamedXContents()), LoggingDeprecationHandler.INSTANCE, query)) {
+            qBuilder.parseXContent(parser);
+        }
+
+        qBuilder.size(maxRows);
+        qBuilder.fetchSource(fields, null);
+
         return new SearchRequest(indexName).source(qBuilder);
     }
 

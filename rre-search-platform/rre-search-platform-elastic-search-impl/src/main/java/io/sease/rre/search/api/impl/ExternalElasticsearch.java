@@ -12,6 +12,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.settings.Settings;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +38,8 @@ public class ExternalElasticsearch extends Elasticsearch {
 
     @Override
     public void beforeStart(Map<String, Object> configuration) {
-        // No-op for this implementation
+        // Need RRE node instantiated to get plugin info (This does not start the node)
+        super.beforeStart(configuration);
     }
 
     @Override

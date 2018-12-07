@@ -44,6 +44,9 @@ public class RREvaluateMojo extends AbstractMojo {
     @Parameter(name = "metrics", defaultValue = "io.sease.rre.core.domain.metrics.impl.PrecisionAtOne,io.sease.rre.core.domain.metrics.impl.PrecisionAtTwo,io.sease.rre.core.domain.metrics.impl.PrecisionAtThree,io.sease.rre.core.domain.metrics.impl.PrecisionAtTen")
     private List<String> metrics;
 
+    @Parameter(name = "plugins")
+    private List<String> plugins;
+
     @Parameter(name = "fields", defaultValue = "")
     private String fields;
 
@@ -87,7 +90,13 @@ public class RREvaluateMojo extends AbstractMojo {
                     null,
                     persistence);
 
-            final Map<String, Object> configuration = Collections.emptyMap();
+            final Map<String, Object> configuration = new HashMap<>();
+            // Most of these don't actually apply except for plugins, but the class ExternalElastic extends expects them
+            configuration.put("path.home", "/tmp");
+            configuration.put("path.data", "target/tmp");
+            configuration.put("network.host", 9200);
+            configuration.put("plugins", plugins);
+            configuration.put("forceRefresh", false);
 
             write(engine.evaluate(configuration));
         } catch (final IOException exception) {
