@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.sease.rre.core.domain.*;
 import io.sease.rre.core.domain.metrics.Metric;
+import io.sease.rre.server.domain.EvaluationMetadata;
 import io.sease.rre.server.domain.StaticMetric;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -13,12 +14,15 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,53 +34,38 @@ import java.util.List;
 @Profile("elasticsearch")
 public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchEvaluationHandlerService.class);
+
     private RestHighLevelClient restHighLevelClient;
+    private Evaluation evaluation = new Evaluation();
+    private EvaluationMetadata metadata = new EvaluationMetadata(Collections.emptyList(), Collections.emptyList());
+
+    private ElasticsearchEvaluationUpdater updater = null;
 
     public ElasticsearchEvaluationHandlerService(RestHighLevelClient restHighLevelClient) {
         this.restHighLevelClient = restHighLevelClient;
     }
 
     @Override
-    public Evaluation processEvaluationRequest(JsonNode requestData) throws Exception {
-        String index = requestData.findValue("index").asText();
-        SearchResponse response = findAllQueries(index);
-        ObjectMapper mapper = new ObjectMapper();
-
-        Evaluation evaluation = new Evaluation();
-        evaluation.setName(findEvaluationName(requestData, index));
-
-        for (SearchHit hit : response.getHits().getHits()) {
-            final QueryResult queryResult = mapper.readValue(hit.getSourceAsString(), QueryResult.class);
-
-            // Fetch or create the query hierarchy
-            Corpus corpus = evaluation.findOrCreate(queryResult.getCorpora(), Corpus::new);
-            Topic topic = corpus.findOrCreate(queryResult.getTopic(), Topic::new);
-            QueryGroup queryGroup = topic.findOrCreate(queryResult.getQueryGroup(), QueryGroup::new);
-            Query query = queryGroup.findOrCreate(queryResult.getQueryText(), Query::new);
-            query.setTotalHits(queryResult.getTotalHits(), queryResult.getVersion());
-
-            // Extract all the metrics
-            queryResult.getMetrics().forEach(qm -> {
-                final Metric m = query.getMetrics().computeIfAbsent(qm.getName(), k -> new StaticMetric(qm.getName()));
-                ((StaticMetric) m).collect(queryResult.getVersion(), new BigDecimal(qm.getValue()).setScale(4, RoundingMode.CEILING));
-            });
-
-            // And propagate them up through the hierarchy
-            query.notifyCollectedMetrics();
+    public void processEvaluationRequest(JsonNode requestData) throws EvaluationHandlerException {
+        if (updater != null && updater.isAlive()) {
+            throw new EvaluationHandlerException("Update is already running - request rejected!");
         }
 
+        String index = requestData.findValue("index").asText();
+        updater = new ElasticsearchEvaluationUpdater(index, findEvaluationName(requestData, index));
+        updater.setDaemon(true);
+        updater.start();
+    }
+
+    @Override
+    public Evaluation getEvaluation() {
         return evaluation;
     }
 
-    private SearchResponse findAllQueries(String index) throws IOException {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
-                .size(5000)
-                .fetchSource(new String[]{ "id", "corpora", "topic", "queryGroup", "queryText", "metrics.*", "version", "totalHits" }, new String[0])
-                .query(QueryBuilders.matchAllQuery())
-                .sort("version", SortOrder.ASC);
-        SearchRequest request = new SearchRequest(index).source(searchSourceBuilder);
-
-        return restHighLevelClient.search(request);
+    @Override
+    public EvaluationMetadata getEvaluationMetadata() {
+        return metadata;
     }
 
     private String findEvaluationName(JsonNode requestData, String defaultValue) {
@@ -90,6 +79,65 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
         }
 
         return evaluationName;
+    }
+
+
+    class ElasticsearchEvaluationUpdater extends Thread {
+
+        private final String index;
+        private final String evaluationName;
+
+        ElasticsearchEvaluationUpdater(String idx, String evalName) {
+            this.index = idx;
+            this.evaluationName = evalName;
+        }
+
+        @Override
+        public void run() {
+            try {
+                SearchResponse response = findAllQueries(index);
+                ObjectMapper mapper = new ObjectMapper();
+
+                Evaluation eval = new Evaluation();
+                eval.setName(evaluationName);
+
+                for (SearchHit hit : response.getHits().getHits()) {
+                    final QueryResult queryResult = mapper.readValue(hit.getSourceAsString(), QueryResult.class);
+
+                    // Fetch or create the query hierarchy
+                    Corpus corpus = eval.findOrCreate(queryResult.getCorpora(), Corpus::new);
+                    Topic topic = corpus.findOrCreate(queryResult.getTopic(), Topic::new);
+                    QueryGroup queryGroup = topic.findOrCreate(queryResult.getQueryGroup(), QueryGroup::new);
+                    Query query = queryGroup.findOrCreate(queryResult.getQueryText(), Query::new);
+                    query.setTotalHits(queryResult.getTotalHits(), queryResult.getVersion());
+
+                    // Extract all the metrics
+                    queryResult.getMetrics().forEach(qm -> {
+                        final Metric m = query.getMetrics().computeIfAbsent(qm.getName(), k -> new StaticMetric(qm.getName()));
+                        ((StaticMetric) m).collect(queryResult.getVersion(), new BigDecimal(qm.getValue()).setScale(4, RoundingMode.CEILING));
+                    });
+
+                    // And propagate them up through the hierarchy
+                    query.notifyCollectedMetrics();
+                }
+
+                evaluation = eval;
+                metadata = HttpEvaluationHandlerService.extractEvaluationMetadata(eval);
+            } catch (IOException e) {
+                LOGGER.error("Caught IOException building evaluation from Elasticsearch: {}", e.getMessage());
+            }
+        }
+
+        private SearchResponse findAllQueries(String index) throws IOException {
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+                    .size(5000)
+                    .fetchSource(new String[]{ "id", "corpora", "topic", "queryGroup", "queryText", "metrics.*", "version", "totalHits" }, new String[0])
+                    .query(QueryBuilders.matchAllQuery())
+                    .sort("version", SortOrder.ASC);
+            SearchRequest request = new SearchRequest(index).source(searchSourceBuilder);
+
+            return restHighLevelClient.search(request);
+        }
     }
 
 
