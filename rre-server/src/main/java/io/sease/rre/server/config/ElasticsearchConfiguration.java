@@ -1,10 +1,6 @@
 package io.sease.rre.server.config;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
@@ -14,14 +10,19 @@ import org.springframework.context.annotation.Profile;
  * @author Matt Pearce (matt@flax.co.uk)
  */
 @Configuration
+@ConfigurationProperties(prefix = "elasticsearch")
 @Profile("elasticsearch")
 public class ElasticsearchConfiguration {
 
-    @Value("${elasticsearch.url}")
-    private String elasticsearchUrl = "http://localhost:9200";
+    private String url = "http://localhost:9200";
 
-    @Bean
-    public RestHighLevelClient buildClient() {
-        return new RestHighLevelClient(RestClient.builder(HttpHost.create(elasticsearchUrl)));
+    private String index = "rre";
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getIndex() {
+        return index;
     }
 }

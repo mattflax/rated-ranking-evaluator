@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.sease.rre.core.domain.*;
 import io.sease.rre.core.domain.metrics.Metric;
+import io.sease.rre.server.config.ElasticsearchConfiguration;
 import io.sease.rre.server.domain.EvaluationMetadata;
 import io.sease.rre.server.domain.StaticMetric;
+import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -16,6 +19,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +40,19 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchEvaluationHandlerService.class);
 
-    private RestHighLevelClient restHighLevelClient;
+    private final ElasticsearchConfiguration configuration;
+    private final RestHighLevelClient restHighLevelClient;
+
     private Evaluation evaluation = new Evaluation();
     private EvaluationMetadata metadata = new EvaluationMetadata(Collections.emptyList(), Collections.emptyList());
 
     private ElasticsearchEvaluationUpdater updater = null;
 
-    public ElasticsearchEvaluationHandlerService(RestHighLevelClient restHighLevelClient) {
-        this.restHighLevelClient = restHighLevelClient;
+    @Autowired
+    public ElasticsearchEvaluationHandlerService(ElasticsearchConfiguration configuration) {
+        this.configuration = configuration;
+        this.restHighLevelClient = new RestHighLevelClient(RestClient.builder(
+                HttpHost.create(configuration.getUrl())));
     }
 
     @Override
@@ -52,8 +61,8 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
             throw new EvaluationHandlerException("Update is already running - request rejected!");
         }
 
-        String index = requestData.findValue("index").asText();
-        updater = new ElasticsearchEvaluationUpdater(index, findEvaluationName(requestData, index));
+        updater = new ElasticsearchEvaluationUpdater(configuration.getIndex(),
+                findEvaluationName(requestData, configuration.getIndex()));
         updater.setDaemon(true);
         updater.start();
     }
