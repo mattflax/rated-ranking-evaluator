@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.sease.rre.core.domain.*;
 import io.sease.rre.core.domain.metrics.Metric;
 import io.sease.rre.core.domain.metrics.ValueFactory;
+import io.sease.rre.server.data.DashboardQueryGroup;
+import io.sease.rre.server.data.DashboardTopic;
 import io.sease.rre.server.domain.EvaluationMetadata;
 import io.sease.rre.server.domain.StaticMetric;
 import org.springframework.context.annotation.Profile;
@@ -216,7 +218,11 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
     }
 
     @Override
-    public Evaluation filterEvaluation(String corpus, String topic, String queryGroup, Collection<String> metrics, Collection<String> versions) {
+    public Evaluation filterEvaluation(final Collection<String> corpora,
+                                       final Collection<DashboardTopic> topics,
+                                       final Collection<DashboardQueryGroup> queryGroups,
+                                       final Collection<String> metrics,
+                                       final Collection<String> versions) throws EvaluationHandlerException {
         final Evaluation eval;
 
         if (evaluation.getChildren() == null || evaluation.getChildren().isEmpty()) {
@@ -226,11 +232,11 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
 
             // Gather the queries
             final List<Query> queries = evaluation.getChildren().stream()
-                    .filter(c -> nameMatches(c, corpus))
+                    .filter(c -> corpusMatches(c, corpora))
                     .flatMap(c -> c.getChildren().stream())
-                    .filter(t -> nameMatches(t, topic))
+                    .filter(t -> topicMatches(t, topics))
                     .flatMap(t -> t.getChildren().stream())
-                    .filter(qg -> nameMatches(qg, queryGroup))
+                    .filter(qg -> queryGroupMatches(qg, queryGroups))
                     .flatMap(qg -> qg.getChildren().stream())
                     .collect(Collectors.toList());
 
@@ -250,8 +256,52 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
         return eval;
     }
 
-    private boolean nameMatches(final DomainMember member, final String name) {
-        return name == null || name.isEmpty() || member.getName().equals(name);
+    private boolean corpusMatches(final Corpus corpus, final Collection<String> corpusNames) {
+        return corpusNames == null || corpusNames.isEmpty() || corpusNames.contains(corpus.getName());
+    }
+
+    private boolean topicMatches(final Topic topic, final Collection<DashboardTopic> dashboardTopics) {
+        boolean ret = false;
+
+        if (dashboardTopics == null || dashboardTopics.isEmpty()) {
+            ret = true;
+        } else {
+            final String corpusName = findParentName(topic, Corpus.class);
+            for (DashboardTopic dTopic : dashboardTopics) {
+                if (dTopic.getCorpus().equals(corpusName)) {
+                    if (dTopic.getTopicName().equals(topic.getName())) {
+                        ret = true;
+                        break;
+                    }
+                }
+
+//                if (dTopic.getCorpus().equals(corpusName) && dTopic.getTopicName().equals(topic.getName())) {
+//                    ret = true;
+//                    break;
+//                }
+            }
+        }
+
+        return ret;
+    }
+
+    private boolean queryGroupMatches(final QueryGroup queryGroup, final Collection<DashboardQueryGroup> dashboardQueryGroups) {
+        boolean ret = false;
+
+        if (dashboardQueryGroups == null || dashboardQueryGroups.isEmpty()) {
+            ret = true;
+        } else {
+            String topicName = findParentName(queryGroup, Topic.class);
+            String corpusName = findParentName(queryGroup, Corpus.class);
+            for (DashboardQueryGroup dqg : dashboardQueryGroups) {
+                if (dqg.getCorpus().equals(corpusName) && dqg.getTopic().equals(topicName) && dqg.getQueryGroup().equals(queryGroup.getName())) {
+                    ret = true;
+                    break;
+                }
+            }
+        }
+
+        return ret;
     }
 
     private Query filterQueryMetrics(final Query query, final QueryGroup parent, final Collection<String> metricFilter, final Collection<String> versions) {

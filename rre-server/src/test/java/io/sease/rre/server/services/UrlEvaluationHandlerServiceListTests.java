@@ -7,6 +7,8 @@ import io.sease.rre.core.domain.Evaluation;
 import io.sease.rre.core.domain.QueryGroup;
 import io.sease.rre.core.domain.Topic;
 import io.sease.rre.core.domain.metrics.Metric;
+import io.sease.rre.server.data.DashboardQueryGroup;
+import io.sease.rre.server.data.DashboardTopic;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -211,7 +213,10 @@ public class UrlEvaluationHandlerServiceListTests {
 
     @Test
     public void filterEvaluationReturnsEmptyEvaluation_whenNoEvaluationSet() throws Exception {
-        Evaluation eval = handler.filterEvaluation(CORPUS, TOPIC, QUERYGROUP, Arrays.asList("P", "R"), Arrays.asList("v1.0", "v1.1"));
+        Evaluation eval = handler.filterEvaluation(Collections.singletonList(CORPUS),
+                Collections.singletonList(new DashboardTopic(TOPIC, CORPUS)),
+                Collections.singletonList(new DashboardQueryGroup(QUERYGROUP, TOPIC, CORPUS)),
+                Arrays.asList("P", "R"), Arrays.asList("v1.0", "v1.1"));
 
         assertThat(eval).isNotNull();
         assertThat(eval.getChildren()).isNullOrEmpty();
@@ -222,7 +227,10 @@ public class UrlEvaluationHandlerServiceListTests {
         handler.processEvaluationRequest(exampleJson);
         // Sleep for long enough to read evaluation from URL
         Thread.sleep(250);
-        Evaluation eval = handler.filterEvaluation(CORPUS, TOPIC, QUERYGROUP, Arrays.asList("P", "R", "AP"), Collections.singleton("v1.1"));
+        Evaluation eval = handler.filterEvaluation(Collections.singletonList(CORPUS),
+                Collections.singletonList(new DashboardTopic(TOPIC, CORPUS)),
+                Collections.singletonList(new DashboardQueryGroup(QUERYGROUP, TOPIC, CORPUS)),
+                Arrays.asList("P", "R", "AP"), Collections.singleton("v1.1"));
 
         assertThat(eval).isNotNull();
         assertThat(eval.getChildren().size()).isEqualTo(1);
@@ -251,7 +259,7 @@ public class UrlEvaluationHandlerServiceListTests {
         handler.processEvaluationRequest(exampleJson);
         // Sleep for long enough to read evaluation from URL
         Thread.sleep(250);
-        Evaluation eval = handler.filterEvaluation(null, TOPIC, null, Arrays.asList("P", "R", "AP"), Collections.singleton("v1.0"));
+        Evaluation eval = handler.filterEvaluation(null, Collections.singletonList(new DashboardTopic(TOPIC, CORPUS)), null, Arrays.asList("P", "R", "AP"), Collections.singleton("v1.0"));
 
         assertThat(eval).isNotNull();
         assertThat(eval.getChildren().size()).isEqualTo(1);
@@ -278,7 +286,10 @@ public class UrlEvaluationHandlerServiceListTests {
         handler.processEvaluationRequest(exampleJson);
         // Sleep for long enough to read evaluation from URL
         Thread.sleep(250);
-        Evaluation eval = handler.filterEvaluation(CORPUS, TOPIC, QUERYGROUP, Arrays.asList("P", "R", "AP"), null);
+        Evaluation eval = handler.filterEvaluation(Collections.singletonList(CORPUS),
+                Collections.singletonList(new DashboardTopic(TOPIC, CORPUS)),
+                Collections.singletonList(new DashboardQueryGroup(QUERYGROUP, TOPIC, CORPUS)),
+                Arrays.asList("P", "R", "AP"), null);
 
         assertThat(eval).isNotNull();
         assertThat(eval.getChildren().size()).isEqualTo(1);
@@ -307,7 +318,10 @@ public class UrlEvaluationHandlerServiceListTests {
         handler.processEvaluationRequest(exampleJson);
         // Sleep for long enough to read evaluation from URL
         Thread.sleep(250);
-        Evaluation eval = handler.filterEvaluation(CORPUS, TOPIC, QUERYGROUP, null, Collections.singleton("v1.1"));
+        Evaluation eval = handler.filterEvaluation(Collections.singletonList(CORPUS),
+                Collections.singletonList(new DashboardTopic(TOPIC, CORPUS)),
+                Collections.singletonList(new DashboardQueryGroup(QUERYGROUP, TOPIC, CORPUS)),
+                null, Collections.singleton("v1.1"));
 
         assertThat(eval).isNotNull();
         assertThat(eval.getChildren().size()).isEqualTo(1);

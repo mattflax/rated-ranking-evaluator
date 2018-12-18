@@ -2,6 +2,7 @@ package io.sease.rre.server.controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.sease.rre.core.domain.Evaluation;
+import io.sease.rre.server.data.DashboardFilterData;
 import io.sease.rre.server.domain.EvaluationMetadata;
 import io.sease.rre.server.services.EvaluationHandlerException;
 import io.sease.rre.server.services.EvaluationHandlerService;
@@ -146,15 +147,11 @@ public class RREController {
             @ApiResponse(code = 414, message = "Request-URI Too Long"),
             @ApiResponse(code = 500, message = "System internal failure occurred.")
     })
-    @GetMapping(value = "/filter", produces = {"application/json"})
+    @GetMapping(value = "/filter", consumes = "application/json", produces = "application/json")
     @ResponseBody
-    public Evaluation getFilteredEvaluation(@RequestParam(name = "corpus", required = false) String corpus,
-                                            @RequestParam(name = "topic", required = false) String topic,
-                                            @RequestParam(name = "queryGroup", required = false) String queryGroup,
-                                            @RequestParam(name = "metric", required = false) Collection<String> metrics,
-                                            @RequestParam(name = "version", required = false) Collection<String> versions) {
+    public Evaluation getFilteredEvaluation(@RequestBody DashboardFilterData filterData) {
         try {
-            return evaluationHandler.filterEvaluation(corpus, topic, queryGroup, metrics, versions);
+            return evaluationHandler.filterEvaluation(filterData.getCorpora(), filterData.getTopics(), filterData.getQueryGroups(), filterData.getMetrics(), filterData.getVersions());
         } catch (EvaluationHandlerException e) {
             LOGGER.error("Caught EvaluationHandlerException filtering the evaluation: {}", e);
             return new Evaluation();

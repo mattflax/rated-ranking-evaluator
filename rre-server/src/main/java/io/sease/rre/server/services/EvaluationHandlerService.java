@@ -2,6 +2,8 @@ package io.sease.rre.server.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.sease.rre.core.domain.Evaluation;
+import io.sease.rre.server.data.DashboardQueryGroup;
+import io.sease.rre.server.data.DashboardTopic;
 import io.sease.rre.server.domain.EvaluationMetadata;
 import org.springframework.stereotype.Service;
 
@@ -100,15 +102,19 @@ public interface EvaluationHandlerService {
      * Retrieve an evaluation, using the optional filters to limit the data
      * returned.
      *
-     * @param corpus     the corpus whose evaluation data is required.
-     * @param topic      the topic to return.
-     * @param queryGroup the query group to return.
-     * @param metrics    the list of metrics required.
-     * @param versions   the versions of the metrics to return.
+     * @param corpora     the corpora whose evaluation data is required.
+     * @param topics      the topics to return.
+     * @param queryGroups the query groups to return.
+     * @param metrics     the list of metrics required.
+     * @param versions    the versions of the metrics to return.
      * @return an evaluation limited by the filter parameters.
      * @throws EvaluationHandlerException if problems occur extracting the
      *                                    data.
      */
-    Evaluation filterEvaluation(String corpus, String topic, String queryGroup, Collection<String> metrics, Collection<String> versions)
+    Evaluation filterEvaluation(Collection<String> corpora,
+                                Collection<DashboardTopic> topics,
+                                Collection<DashboardQueryGroup> queryGroups,
+                                Collection<String> metrics,
+                                Collection<String> versions)
             throws EvaluationHandlerException;
 }
