@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -147,7 +146,7 @@ public class RREController {
             @ApiResponse(code = 414, message = "Request-URI Too Long"),
             @ApiResponse(code = 500, message = "System internal failure occurred.")
     })
-    @GetMapping(value = "/filter", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/filter", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public Evaluation getFilteredEvaluation(@RequestBody DashboardFilterData filterData) {
         try {

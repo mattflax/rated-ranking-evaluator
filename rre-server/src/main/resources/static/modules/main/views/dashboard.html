@@ -6,14 +6,16 @@
         <input type="checkbox" ng-model="version.selected" name="currentVersions[]" value="{{version.name}}">{{ version.name }}</input>
     </li></ul>
     <ul><li ng-repeat="corpus in vm.corpusList">
-        <input type="checkbox" ng-model="corpus.selected" name="currentCorpora[]" value="{{corpus.name}}">{{ corpus.name }}</input>
+        <input type="checkbox" ng-model="corpus.selected" name="currentCorpora[]" value="{{corpus.name}}" ng-change="updateCorpora()">{{ corpus.name }}</input>
     </li></ul>
     <ul><li ng-repeat="topic in vm.topicList">
-        <input type="checkbox" ng-model="topic.selected" name="currentTopics[]" value="{{topic.id}}">[{{ topic.corpus }}] {{ topic.name }}</input>
+        <input type="checkbox" ng-model="topic.selected" name="currentTopics[]" value="{{topic.id}}" ng-change="updateTopic()" ng-disabled="topic.disabled">[{{ topic.corpus }}] {{ topic.name }}</input>
     </li></ul>
     <ul><li ng-repeat="qg in vm.queryGroupList">
-        <input type="checkbox" ng-model="qg.selected" name="currentQueryGroups[]" value="{{qg.id}}">[{{ qg.corpus }}/{{ qg.topic }}] - {{ qg.name }}</input>
+        <input type="checkbox" ng-model="qg.selected" name="currentQueryGroups[]" value="{{qg.id}}" ng-disabled="qg.disabled">[{{ qg.corpus }}/{{ qg.topic }}] - {{ qg.name }}</input>
     </li></ul>
+
+    <button ng-click="applyFilter()">Apply</button>
 </div>
 <div class="container-fluid">
     <table class="table table-bordered table-hover table-sm">

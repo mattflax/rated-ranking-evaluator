@@ -37,14 +37,8 @@
                 }
             );
             $interval(function () {
-                DataService.getData().then(
-                    function (response) {
-                        vm.data = response;
-                    },
-                    function (error) {
-                        $log.error("DataService - Error while performing request:", error);
-                    }
-                );
+                // Re-apply the current filters
+                $scope.applyFilter();
             }, ConfigService.requestInterval);
             $scope.vm = vm;
             $log.log('DashboardController', 'starting');
@@ -77,15 +71,6 @@
                     $log.error("DataService - error while fetching metrics: ", error);
                 }
             );
-        }
-
-        $scope.toggleMetric = function(metric) {
-            var idx = vm.currentMetrics.indexOf(metric);
-            if (idx == -1) {
-                vm.currentMetrics.push(metric);
-            } else {
-                vm.currentMetrics.splice(idx, 1);
-            }
         }
 
         updateVersionList = function() {
@@ -143,7 +128,8 @@
                                         name: data[j],
                                         corpus: corpus.name,
                                         selected: true,
-                                        id: corpus.name + "_" + data[j]
+                                        id: corpus.name + "_" + data[j],
+                                        disabled: false
                                     });
                                 }
                             }
@@ -184,7 +170,8 @@
                                             selected: true,
                                             corpus: corpus.name,
                                             topic: topic.name,
-                                            id: corpus.name + "_" + topic.name + "_" + data[i]
+                                            id: corpus.name + "_" + topic.name + "_" + data[i],
+                                            disabled: false
                                         });
                                     }
                                 }
@@ -208,6 +195,84 @@
                 }
             }
             return ret;
+        }
+
+        // Handlers for changes in corpora and topics
+        $scope.updateCorpora = function() {
+            for (i = 0; i < vm.corpusList.length; i ++) {
+                var corpus = vm.corpusList[i];
+                for (j = 0; j < vm.topicList.length; j ++) {
+                    if (vm.topicList[j].corpus == corpus.name) {
+                        vm.topicList[j].disabled = !corpus.selected;
+                    }
+                }
+            }
+
+            // Also need to update the topics
+            $scope.updateTopic();
+        }
+
+        $scope.updateTopic = function() {
+            for (i = 0; i < vm.topicList.length; i ++) {
+                var topic = vm.topicList[i];
+                for (j = 0; j < vm.queryGroupList.length; j ++) {
+                    if (vm.queryGroupList[j].topic == topic.name) {
+                        vm.queryGroupList[j].disabled = !topic.selected || topic.disabled;
+                    }
+                }
+            }
+        }
+
+        // Handler to apply a given filter set
+        $scope.applyFilter = function() {
+            // Gather the metrics, versions, corpora
+            var metrics = extractSelectedNames(vm.metricList);
+            var versions = extractSelectedNames(vm.versionList);
+            var corpora = extractSelectedNames(vm.corpusList);
+
+            // Gather the topics
+            var topics = [];
+            for (i = 0; i < vm.topicList.length; i ++) {
+                var topic = vm.topicList[i];
+                if (!topic.disabled && topic.selected) {
+                    topics.push({
+                        topicName: topic.name,
+                        corpus: topic.corpus
+                    });
+                }
+            }
+
+            // Gather the query groups
+            var queryGroups = []
+            for (i = 0; i < vm.queryGroupList.length; i ++) {
+                var qg = vm.queryGroupList[i];
+                if (!qg.disabled && qg.selected) {
+                    queryGroups.push({
+                        queryGroup: qg.name,
+                        topic: qg.topic,
+                        corpus: qg.corpus
+                    });
+                }
+            }
+
+            DataService.filterEvaluationData(corpora, topics, queryGroups, metrics, versions).then(
+                function(data) {
+                    vm.data = data;
+                },
+                function(error) {
+                    $log.error("DataService - Error while performing filter request:", error);
+                }
+            );
+        }
+
+        extractSelectedNames = function(itemList) {
+            var selected = [];
+            for (i = 0; i < itemList.length; i ++) {
+                if (itemList[i].selected) {
+                    selected.push(itemList[i].name);
+                }
+            }
+            return selected;
         }
     }
 })();

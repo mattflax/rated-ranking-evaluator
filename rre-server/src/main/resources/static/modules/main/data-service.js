@@ -13,7 +13,8 @@
             getVersionList: getVersionList,
             getCorpusList: getCorpusList,
             getTopicList: getTopicList,
-            getQueryGroupList: getQueryGroupList
+            getQueryGroupList: getQueryGroupList,
+            filterEvaluationData: filterEvaluationData
         };
 
         ////////////
@@ -62,6 +63,35 @@
 
         function getQueryGroupList(corpus, topic) {
             return getByUrl(ConfigService.queryGroupListUrl, { params: { corpus: corpus, topic: topic }});
+        }
+
+        function filterEvaluationData(corpora, topics, queryGroups, metrics, versions) {
+            var deferred = $q.defer();
+
+            var data = {
+                corpora: corpora,
+                topics: topics,
+                queryGroups: queryGroups,
+                metrics: metrics,
+                versions: versions
+            };
+
+            var config = {
+                headers: {
+                    'Content-type': 'application/json'
+                }
+            };
+
+            $http.post(ConfigService.filterUrl, data, config)
+            .then(function(response) {
+                deferred.resolve(response.data);
+            },
+            function(error) {
+                $log.error("DataService", "Error filtering content - " + error);
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
         }
     }
 })();
