@@ -33,6 +33,7 @@
         <module>rre-server</module>
         <module>rre-maven-archetype</module>
         <module>rre-persistence-plugin</module>
+        <module>rre-server-plugin</module>
     </modules>
 
     <distributionManagement>
