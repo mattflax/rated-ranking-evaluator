@@ -3,25 +3,36 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>rre-server-plugin</artifactId>
+        <artifactId>rre-server</artifactId>
         <groupId>io.sease</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rre-server-plugin-elasticsearch</artifactId>
-    <version>1.0</version>
+    <version>6.3.2</version>
+    <name>RRE - Web Control Panel - Elasticsearch plugin</name>
 
     <dependencies>
         <dependency>
+            <groupId>io.sease</groupId>
+            <artifactId>rre-server-core</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>6.3.2</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>6.3.2</version>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
         </dependency>
     </dependencies>
 </project>

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.sease.rre.core.domain.*;
 import io.sease.rre.core.domain.metrics.Metric;
-import io.sease.rre.core.domain.metrics.ValueFactory;
 import io.sease.rre.server.data.DashboardQueryGroup;
 import io.sease.rre.server.data.DashboardTopic;
 import io.sease.rre.server.domain.EvaluationMetadata;
@@ -114,13 +113,15 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
         return evaluation;
     }
 
-    private void metrics(final JsonNode data, final DomainMember parent) {
+    private void metrics(final JsonNode data, final DomainMember<?> parent) {
         data.get("metrics").fields().forEachRemaining(entry -> {
             final StaticMetric metric = new StaticMetric(entry.getKey());
 
-            entry.getValue().get("versions").fields().forEachRemaining(vEntry -> {
-                metric.collect(vEntry.getKey(), new BigDecimal(vEntry.getValue().get("value").asDouble()).setScale(4, RoundingMode.CEILING));
-            });
+            entry.getValue().get("versions").fields().forEachRemaining(vEntry ->
+                metric.collect(vEntry.getKey(),
+                        new BigDecimal(vEntry.getValue().get("value")
+                                .asDouble())
+                                .setScale(4, RoundingMode.CEILING)));
             parent.getMetrics().put(metric.getName(), metric);
         });
     }
@@ -222,7 +223,7 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
                                        final Collection<DashboardTopic> topics,
                                        final Collection<DashboardQueryGroup> queryGroups,
                                        final Collection<String> metrics,
-                                       final Collection<String> versions) throws EvaluationHandlerException {
+                                       final Collection<String> versions) {
         final Evaluation eval;
 
         if (evaluation.getChildren() == null || evaluation.getChildren().isEmpty()) {
@@ -274,11 +275,6 @@ public class HttpEvaluationHandlerService implements EvaluationHandlerService {
                         break;
                     }
                 }
-
-//                if (dTopic.getCorpus().equals(corpusName) && dTopic.getTopicName().equals(topic.getName())) {
-//                    ret = true;
-//                    break;
-//                }
             }
         }
 

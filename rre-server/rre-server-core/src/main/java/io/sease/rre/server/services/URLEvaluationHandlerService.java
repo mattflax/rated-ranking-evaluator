@@ -1,17 +1,13 @@
 package io.sease.rre.server.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.sease.rre.core.domain.Evaluation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Implementation of the evaluation handler that extracts a URL from the
