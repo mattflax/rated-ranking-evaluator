@@ -51,7 +51,7 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
     private static final String METRICS_FIELD = "metrics.name";
     private static final String VERSION_FIELD = "version";
     private static final String CORPUS_FIELD = "corpora";
-    private static final String TOPIC_FIELD = "topic";
+    private static final String TOPIC_FIELD = "topic.keyword";
     private static final String QUERY_GROUP_FIELD = "queryGroup.keyword";
 
     private static final String[] BASE_SOURCE_FIELDS = new String[]{
@@ -158,7 +158,7 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
         try {
             SearchSourceBuilder ssb = new SearchSourceBuilder().size(0)
                     .query(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(CORPUS_FIELD, corpus)))
-                    .aggregation(AggregationBuilders.terms(aggName).field("topic").size(100));
+                    .aggregation(AggregationBuilders.terms(aggName).field(TOPIC_FIELD).size(100));
             SearchRequest request = new SearchRequest(configuration.getIndex()).source(ssb);
             SearchResponse response = restHighLevelClient.search(request);
 
