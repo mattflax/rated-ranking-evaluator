@@ -26,6 +26,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,7 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
 
     @Autowired
     public ElasticsearchEvaluationHandlerService(ElasticsearchConfiguration configuration) {
+        LOGGER.info("Initialising ES Evaluation Handler to use {} - index {}", configuration.getUrl(), configuration.getIndex());
         this.configuration = configuration;
         this.restHighLevelClient = new RestHighLevelClient(RestClient.builder(
                 HttpHost.create(configuration.getUrl())));

@@ -44,8 +44,8 @@ pass the elasticsearch profile switch on the command line:
 By default, the Elasticsearch plugin will use an index called `rre` on a
 local Elasticsearch instance. To change this, pass in further parameters:
 
-- `-Delasticsearch.url=http://myhost:9200` to change the Elasticsearch endpoint.
-- `-Delasticsearch.index=rre_test` to change the index in use.
+- `--elasticsearch.url=http://myhost:9200` to change the Elasticsearch endpoint.
+- `--elasticsearch.index=rre_test` to change the index in use.
 
-These parameters should come before the `-jar rre-server...` command line
-option.
+These parameters should come after the `-jar rre-server...` command line
+section - ie. at the *end* of the command.
