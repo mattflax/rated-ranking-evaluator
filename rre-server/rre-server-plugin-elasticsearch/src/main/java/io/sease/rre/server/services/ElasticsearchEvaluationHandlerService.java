@@ -55,7 +55,7 @@ public class ElasticsearchEvaluationHandlerService implements EvaluationHandlerS
     private static final String QUERY_GROUP_FIELD = "queryGroup.keyword";
 
     private static final String[] BASE_SOURCE_FIELDS = new String[]{
-            "id", CORPUS_FIELD, TOPIC_FIELD, "queryGroup", "queryText", "metrics.*", "version", "totalHits"
+            "id", CORPUS_FIELD, "topic", "queryGroup", "queryText", "metrics.*", "version", "totalHits"
     };
 
     private final ElasticsearchConfiguration configuration;
