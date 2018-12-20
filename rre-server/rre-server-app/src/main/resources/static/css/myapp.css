@@ -1,3 +1,15 @@
 body {
     padding-top: 70px;
 }
+
+.filter-buttons {
+    margin: 12px;
+}
+
+.filter-buttons button {
+    margin-right: 8px;
+}
+
+.filter-checkbox {
+    padding-left: 8px;
+}

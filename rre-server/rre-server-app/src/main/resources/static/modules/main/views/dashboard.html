@@ -1,21 +1,47 @@
 <div class="container-fluid">
-    <ul><li ng-repeat="metric in vm.metricList">
-        <input type="checkbox" ng-model="metric.selected" name="currentMetrics[]" value="{{metric.name}}">{{ metric.name }}</input>
-    </li></ul>
-    <ul><li ng-repeat="version in vm.versionList">
-        <input type="checkbox" ng-model="version.selected" name="currentVersions[]" value="{{version.name}}">{{ version.name }}</input>
-    </li></ul>
-    <ul><li ng-repeat="corpus in vm.corpusList">
-        <input type="checkbox" ng-model="corpus.selected" name="currentCorpora[]" value="{{corpus.name}}" ng-change="updateCorpora()">{{ corpus.name }}</input>
-    </li></ul>
-    <ul><li ng-repeat="topic in vm.topicList">
-        <input type="checkbox" ng-model="topic.selected" name="currentTopics[]" value="{{topic.id}}" ng-change="updateTopic()" ng-disabled="topic.disabled">[{{ topic.corpus }}] {{ topic.name }}</input>
-    </li></ul>
-    <ul><li ng-repeat="qg in vm.queryGroupList">
-        <input type="checkbox" ng-model="qg.selected" name="currentQueryGroups[]" value="{{qg.id}}" ng-disabled="qg.disabled">[{{ qg.corpus }}/{{ qg.topic }}] - {{ qg.name }}</input>
-    </li></ul>
-
-    <button ng-click="applyFilter()">Apply</button>
+    <div class="btn-group filter-buttons">
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="metricMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Metrics</button>
+            <div class="dropdown-menu" aria-labelledby="metricMenuButton">
+                <div class="filter-checkbox" ng-repeat="metric in vm.metricList">
+                    <input type="checkbox" ng-model="metric.selected" name="currentMetrics[]" value="{{metric.name}}">{{ metric.name }}</input>
+                </div>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="versionMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Versions</button>
+            <div class="dropdown-menu" aria-labelledby="versionMenuButton">
+                <div class="filter-checkbox" ng-repeat="version in vm.versionList">
+                    <input type="checkbox" ng-model="version.selected" name="currentVersions[]" value="{{version.name}}">{{ version.name }}</input>
+                </div>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="corpusMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Corpora</button>
+            <div class="dropdown-menu" aria-labelledby="corpusMenuButton">
+                <div class="filter-checkbox" ng-repeat="corpus in vm.corpusList">
+                    <input type="checkbox" ng-model="corpus.selected" name="currentCorpora[]" value="{{corpus.name}}" ng-change="updateCorpora()">{{ corpus.name }}</input>
+                </div>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="topicMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Topics</button>
+            <div class="dropdown-menu" aria-labelledby="topicMenuButton">
+                <div class="filter-checkbox" ng-repeat="topic in vm.topicList">
+                    <input type="checkbox" ng-model="topic.selected" name="currentTopics[]" value="{{topic.id}}" ng-change="updateTopic()" ng-disabled="topic.disabled">[{{ topic.corpus }}] {{ topic.name }}</input>
+                </div>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="queryGroupMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Query groups</button>
+            <div class="dropdown-menu" class="dropdown-menu" aria-labelledby="queryGroupMenuButton">
+                <div class="filter-checkbox" ng-repeat="qg in vm.queryGroupList">
+                    <input type="checkbox" ng-model="qg.selected" name="currentQueryGroups[]" value="{{qg.id}}" ng-disabled="qg.disabled">[{{ qg.corpus }}/{{ qg.topic }}] - {{ qg.name }}</input>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-success" ng-click="applyFilter()">Apply</button>
 </div>
 <div class="container-fluid">
     <table class="table table-bordered table-hover table-sm">
