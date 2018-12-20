@@ -10,8 +10,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rre-server-plugin-elasticsearch</artifactId>
-    <version>6.3.2</version>
+    <version>1.0</version>
     <name>RRE - Web Control Panel - Elasticsearch plugin</name>
+
+    <properties>
+        <!-- Note that the ES version has to be set in the rre-server-app
+             profile as well, otherwise Spring defaults to using 2.4.5 -->
+        <elasticsearch.version>6.3.2</elasticsearch.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -19,15 +25,22 @@
             <artifactId>rre-server-core</artifactId>
             <version>1.0</version>
         </dependency>
+        <!-- Include ES direct dependency to exclude log4j -->
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${elasticsearch.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>${project.version}</version>
+            <version>${elasticsearch.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -90,9 +90,13 @@
                 <dependency>
                     <groupId>io.sease</groupId>
                     <artifactId>rre-server-plugin-elasticsearch</artifactId>
-                    <version>6.3.2</version>
+                    <version>1.0</version>
                 </dependency>
             </dependencies>
+            <properties>
+                <!-- Force-set ES version, instead of using Spring's default -->
+                <elasticsearch.version>6.3.2</elasticsearch.version>
+            </properties>
         </profile>
     </profiles>
 </project>
