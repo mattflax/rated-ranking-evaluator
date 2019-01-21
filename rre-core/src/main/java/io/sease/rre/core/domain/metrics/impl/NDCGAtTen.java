@@ -47,7 +47,7 @@ public class NDCGAtTen extends Metric {
                                     dcg = value;
                                     break;
                                 default:
-                                    dcg = dcg.add(new BigDecimal(value.doubleValue() / (Math.log(rank) / Math.log(2))));
+                                    dcg = dcg.add(new BigDecimal(value.doubleValue() / (Math.log(rank + 1) / Math.log(2))));
                             }
                         });
             }
@@ -87,12 +87,16 @@ public class NDCGAtTen extends Metric {
 
         Arrays.fill(gains, 0, howManyVeryVeryRelevantDocs, 3);
         if (howManyVeryVeryRelevantDocs < windowSize) {
-            Arrays.fill(gains, howManyVeryVeryRelevantDocs, howManyVeryVeryRelevantDocs + Math.min((windowSize - howManyVeryVeryRelevantDocs), howManyVeryRelevantDocs), 1);
+            Arrays.fill(gains, howManyVeryVeryRelevantDocs, howManyVeryVeryRelevantDocs + howManyVeryRelevantDocs, 2);
+        }
+
+        if (howManyVeryVeryRelevantDocs + howManyVeryRelevantDocs < windowSize) {
+            Arrays.fill(gains, howManyVeryVeryRelevantDocs + howManyVeryRelevantDocs, gains.length, 1);
         }
 
         BigDecimal result = gains.length > 0 ? new BigDecimal(gains[0]) : BigDecimal.ZERO;
         for (int i = 1; i < gains.length; i++) {
-            result = result.add(new BigDecimal(gains[i] / (Math.log(i + 1) / Math.log(2))));
+            result = result.add(new BigDecimal(gains[i] / (Math.log(i + 2) / Math.log(2))));
         }
 
         return result;
