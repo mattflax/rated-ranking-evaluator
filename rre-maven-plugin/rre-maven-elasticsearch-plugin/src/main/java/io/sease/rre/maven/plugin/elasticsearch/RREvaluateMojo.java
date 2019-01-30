@@ -1,6 +1,9 @@
 package io.sease.rre.maven.plugin.elasticsearch;
 
 import io.sease.rre.core.Engine;
+import io.sease.rre.core.domain.metrics.MetricClassManager;
+import io.sease.rre.core.domain.metrics.ParameterizedMetricClassManager;
+import io.sease.rre.core.domain.metrics.SimpleMetricClassManager;
 import io.sease.rre.persistence.PersistenceConfiguration;
 import io.sease.rre.search.api.SearchPlatform;
 import io.sease.rre.search.api.impl.Elasticsearch;
@@ -54,6 +57,9 @@ public class RREvaluateMojo extends AbstractMojo {
     @Parameter(name = "metrics", defaultValue = "io.sease.rre.core.domain.metrics.impl.PrecisionAtOne,io.sease.rre.core.domain.metrics.impl.PrecisionAtTwo,io.sease.rre.core.domain.metrics.impl.PrecisionAtThree,io.sease.rre.core.domain.metrics.impl.PrecisionAtTen")
     private List<String> metrics;
 
+    @Parameter(name = "parameterizedMetrics")
+    private Map<String, Map> parameterizedMetrics;
+
     @Parameter(name = "plugins")
     private List<String> plugins;
 
@@ -90,13 +96,15 @@ public class RREvaluateMojo extends AbstractMojo {
                             Thread.currentThread().getContextClassLoader()));
 
         try (final SearchPlatform platform = new Elasticsearch()) {
+            final MetricClassManager metricClassManager =
+                    parameterizedMetrics == null ? new SimpleMetricClassManager(metrics) : new ParameterizedMetricClassManager(metrics, parameterizedMetrics);
             final Engine engine = new Engine(
                     platform,
                     configurationsFolder,
                     corporaFolder,
                     ratingsFolder,
                     templatesFolder,
-                    metrics,
+                    metricClassManager,
                     fields.split(","),
                     exclude,
                     include,
