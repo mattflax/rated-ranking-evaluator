@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.sease.rre.Field;
 import io.sease.rre.Func;
-import io.sease.rre.core.domain.*;
+import io.sease.rre.core.domain.Corpus;
+import io.sease.rre.core.domain.Evaluation;
+import io.sease.rre.core.domain.Query;
+import io.sease.rre.core.domain.QueryGroup;
+import io.sease.rre.core.domain.Topic;
 import io.sease.rre.core.domain.metrics.Metric;
 import io.sease.rre.core.domain.metrics.MetricClassManager;
 import io.sease.rre.persistence.PersistenceConfiguration;
@@ -16,7 +20,11 @@ import io.sease.rre.search.api.SearchPlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
@@ -473,6 +481,7 @@ public class Engine {
                 .filter(versionFolder -> (folderHasChanged(versionFolder) || corporaChanged || platform.isRefreshRequired()))
                 .flatMap(versionFolder -> stream(safe(versionFolder.listFiles(ONLY_NON_HIDDEN_FILES))))
                 .filter(file -> platform.isSearchPlatformFile(indexName, file))
+                .sorted()
                 .peek(file -> LOGGER.info("RRE: Loading the Test Collection into " + platform.getName() + ", configuration version " + file.getParentFile().getName()))
                 .forEach(fileOrFolder -> platform.load(data, fileOrFolder, indexFqdn(indexName, fileOrFolder.getParentFile().getName())));
 
@@ -481,6 +490,7 @@ public class Engine {
         this.versions =
                 stream(versionFolders)
                         .map(File::getName)
+                        .sorted()
                         .collect(toList());
 
         if (persistenceConfiguration.isUseTimestampAsVersion()) {
