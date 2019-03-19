@@ -23,8 +23,6 @@ import io.sease.rre.core.template.QueryTemplateManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Matt Pearce (matt@flax.co.uk)
  */
 public class SynchronousEvaluationManager extends BaseEvaluationManager implements EvaluationManager {
-
-    private final static Logger LOGGER = LogManager.getLogger(SynchronousEvaluationManager.class);
 
     private int queryCount;
 
@@ -58,7 +54,6 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
 
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
-        LOGGER.info("\t\tQUERY: " + query.getName());
         queryCount++;
 
         getVersions().forEach(version -> {

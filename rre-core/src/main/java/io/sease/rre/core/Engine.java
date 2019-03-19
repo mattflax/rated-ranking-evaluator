@@ -53,8 +53,21 @@ import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static io.sease.rre.Field.*;
-import static io.sease.rre.Func.*;
+import static io.sease.rre.Field.CORPORA_FILENAME;
+import static io.sease.rre.Field.DEFAULT_ID_FIELD_NAME;
+import static io.sease.rre.Field.DESCRIPTION;
+import static io.sease.rre.Field.ID_FIELD_NAME;
+import static io.sease.rre.Field.INDEX_NAME;
+import static io.sease.rre.Field.NAME;
+import static io.sease.rre.Field.QUERIES;
+import static io.sease.rre.Field.QUERY_GROUPS;
+import static io.sease.rre.Field.RELEVANT_DOCUMENTS;
+import static io.sease.rre.Field.TOPICS;
+import static io.sease.rre.Field.UNNAMED;
+import static io.sease.rre.Func.ONLY_DIRECTORIES;
+import static io.sease.rre.Func.ONLY_JSON_FILES;
+import static io.sease.rre.Func.ONLY_NON_HIDDEN_FILES;
+import static io.sease.rre.Func.safe;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
@@ -247,7 +260,7 @@ public class Engine {
                                                 .forEach(queryNode -> {
                                                     final String queryString = queryNode.findValue(queryPlaceholder).asText();
 
-//                                                    LOGGER.info("\t\tQUERY: " + queryString);
+                                                    LOGGER.info("\t\tQUERY: " + queryString);
 
                                                     final JsonNode relevantDocuments = relevantDocuments(groupNode.get(RELEVANT_DOCUMENTS));
                                                     final Query queryEvaluation = group.findOrCreate(queryString, Query::new);
@@ -263,7 +276,9 @@ public class Engine {
             });
 
             while (evaluationManager.isRunning()) {
-                LOGGER.info("  ... evaluating [{} / {}] ...", evaluationManager.getQueriesRemaining(), evaluationManager.getTotalQueries());
+                LOGGER.info("  ... completed {} / {} evaluations ...",
+                        (evaluationManager.getTotalQueries() - evaluationManager.getQueriesRemaining()),
+                        evaluationManager.getTotalQueries());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ignore) {

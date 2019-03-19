@@ -21,7 +21,6 @@ import io.sease.rre.core.domain.Query;
 import io.sease.rre.core.evaluation.EvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
 import io.sease.rre.persistence.PersistenceManager;
-import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,10 +71,7 @@ public class AsynchronousQueryEvaluationManager extends BaseEvaluationManager im
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
         evaluateQueryAsync(query, indexName, queryNode, defaultTemplate, relevantDocCount)
-                .thenAccept(q -> {
-                    LOGGER.info("\t\tQUERY: " + query.getName());
-                    completeQuery(q);
-                });
+                .thenAccept(this::completeQuery);
     }
 
     /**
