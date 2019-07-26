@@ -16,10 +16,12 @@
  */
 package io.sease.rre.search.api.impl;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.SolrClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,37 +53,32 @@ class SolrClientManager implements Closeable {
     void buildSolrClient(String targetIndexName, ExternalApacheSolr.SolrSettings settings) {
         final SolrClient client;
 
+        final HttpClient httpClient = HttpClients.createDefault();
+        if (settings.getConnectionTimeout() != null) {
+            HttpClientUtil.setConnectionTimeout(httpClient, settings.getConnectionTimeout());
+        }
+        if (settings.getSocketTimeout() != null) {
+            HttpClientUtil.setSoTimeout(httpClient, settings.getSocketTimeout());
+        }
+
         if (settings.hasZookeeperSettings()) {
-            final CloudSolrClient.Builder builder = new CloudSolrClient.Builder(settings.getZkHosts(), settings.getZkChroot());
-            client = applyTimeoutSettings(builder, settings).build();
+            client = new CloudSolrClient.Builder()
+                    .withHttpClient(httpClient)
+                    .withZkHost(settings.getZkHosts())
+                    .withZkChroot(settings.getZkChroot())
+                    .build();
         } else if (settings.getBaseUrls().size() > 1) {
-            final CloudSolrClient.Builder builder = new CloudSolrClient.Builder(settings.getBaseUrls());
-            client = applyTimeoutSettings(builder, settings).build();
+            client = new CloudSolrClient.Builder()
+                    .withHttpClient(httpClient)
+                    .withSolrUrl(settings.getBaseUrls())
+                    .build();
         } else {
-            final HttpSolrClient.Builder builder = new HttpSolrClient.Builder(settings.getBaseUrls().get(0));
-            client = applyTimeoutSettings(builder, settings).build();
+            client = new HttpSolrClient.Builder(settings.getBaseUrls().get(0))
+                    .withHttpClient(httpClient)
+                    .build();
         }
 
         indexClients.put(targetIndexName, client);
-    }
-
-    /**
-     * Apply the timeout settings using methods common to all SolrClientBuilder
-     * implementations.
-     *
-     * @param builder  the SolrClientBuilder.
-     * @param settings the SolrSettings, containing the (optional) timeout settings.
-     * @param <C>      the type of SolrClientBuilder in use.
-     * @return the SolrClientBuilder with the timeout settings applied.
-     */
-    private <C extends SolrClientBuilder> C applyTimeoutSettings(C builder, ExternalApacheSolr.SolrSettings settings) {
-        if (settings.getConnectionTimeout() != null) {
-            builder.withConnectionTimeout(settings.getConnectionTimeout());
-        }
-        if (settings.getSocketTimeout() != null) {
-            builder.withSocketTimeout(settings.getSocketTimeout());
-        }
-        return builder;
     }
 
     /**

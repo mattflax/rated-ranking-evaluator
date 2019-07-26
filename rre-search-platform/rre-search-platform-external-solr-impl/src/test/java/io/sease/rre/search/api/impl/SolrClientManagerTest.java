@@ -16,6 +16,7 @@
  */
 package io.sease.rre.search.api.impl;
 
+import org.apache.solr.client.solrj.embedded.JettyConfig;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.cloud.MiniSolrCloudCluster;
@@ -74,8 +75,10 @@ public class SolrClientManagerTest {
         // Set a dummy log directory, to stop Solr complaining at start-up
         System.setProperty("solr.log.dir", tempFolder.newFolder("logs").getAbsolutePath());
         // Build a mini cluster to test with - cannot initialise CloudSolrClient without something to connect to
-        MiniSolrCloudCluster cluster = new SolrCloudTestCase.Builder(2, tempFolder.newFolder().toPath())
-                .build();
+        MiniSolrCloudCluster cluster = new MiniSolrCloudCluster(2, tempFolder.newFolder().toPath(), MiniSolrCloudCluster.DEFAULT_CLOUD_SOLR_XML,
+                JettyConfig.builder().build());
+                //new SolrCloudTestCase.Builder(2, tempFolder.newFolder().toPath())
+                //.build();
         // Get the base URLs - doing it this way since jsr.getBaseUrl() doesn't return a valid URL
         List<String> baseUrls = cluster.getJettySolrRunners().stream()
                 .map(jsr -> "http://localhost:" + jsr.getLocalPort() + "/solr")

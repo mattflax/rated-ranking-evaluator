@@ -207,8 +207,8 @@ public class ExternalApacheSolr implements SearchPlatform {
             return zkHosts;
         }
 
-        public Optional<String> getZkChroot() {
-            return Optional.ofNullable(zkChroot);
+        public String getZkChroot() {
+            return zkChroot;
         }
 
         public boolean hasZookeeperSettings() {
