@@ -21,13 +21,13 @@ import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
 import org.apache.htrace.fasterxml.jackson.databind.JsonNode;
 import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.core.CoreContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -48,7 +48,7 @@ import static java.util.Optional.ofNullable;
  * @since 1.0
  */
 public class ApacheSolr implements SearchPlatform {
-    private final static Logger LOGGER = LogManager.getLogger(ApacheSolr.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ApacheSolr.class);
 
     private EmbeddedSolrServer proxy;
     private File solrHome;
