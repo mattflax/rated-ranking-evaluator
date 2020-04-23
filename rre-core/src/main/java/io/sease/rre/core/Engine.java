@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class Engine {
 
     private FileUpdateChecker fileUpdateChecker;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private final PersistenceManager persistenceManager;
 
@@ -177,10 +178,10 @@ public class Engine {
         persistenceConfiguration.getHandlers().forEach((n, h) -> {
             try {
                 // Instantiate the handler
-                PersistenceHandler handler = (PersistenceHandler) Class.forName(h).newInstance();
+                PersistenceHandler handler = (PersistenceHandler) Class.forName(h).getDeclaredConstructor().newInstance();
                 handler.configure(n, persistenceConfiguration.getHandlerConfigurationByName(n));
                 persistenceManager.registerHandler(handler);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 LOGGER.error("[" + n + "] Caught exception instantiating persistence handler :: " + e.getMessage(), e);
             }
         });
@@ -293,6 +294,11 @@ public class Engine {
             LOGGER.info("RRE: Stopping persistence manager");
             persistenceManager.stop();
         }
+    }
+
+    public void stopEvaluation() {
+        LOGGER.info("Stopping all current evaluations.");
+        evaluationManager.stop();
     }
 
     private Optional<File> data(final JsonNode ratingsNode) {
@@ -459,7 +465,7 @@ public class Engine {
         }
 
         Stream<File> searchCollectionsConfigs = versionManager.getConfigurationVersionFolders().stream()
-                .filter(versionFolder -> isConfigurationReloadNecessary(versionFolder))
+                .filter(this::isConfigurationReloadNecessary)
                 .flatMap(versionFolder -> stream(safe(versionFolder.listFiles(ONLY_NON_HIDDEN_FILES))));
         //each one of searchCollectionsConfigs stream elements is a full configuration for a search collection
         searchCollectionsConfigs

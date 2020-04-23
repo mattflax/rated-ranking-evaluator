@@ -57,4 +57,9 @@ public interface EvaluationManager {
      * @return the total number of queries that have been set for evaluation.
      */
     int getTotalQueries();
+
+    /**
+     * Stop the evaluation process as soon as possible.
+     */
+    void stop();
 }

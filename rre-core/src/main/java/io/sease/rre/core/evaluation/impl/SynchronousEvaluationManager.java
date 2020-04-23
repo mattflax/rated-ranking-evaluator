@@ -69,7 +69,7 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
 
     @Override
     public boolean isRunning() {
-        return false;
+        return super.isRunning();
     }
 
     @Override
@@ -80,5 +80,10 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
     @Override
     public int getTotalQueries() {
         return queryCount;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
     }
 }

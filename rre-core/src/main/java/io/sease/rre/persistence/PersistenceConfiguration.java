@@ -47,9 +47,9 @@ public class PersistenceConfiguration {
         // Do nothing - required for Maven initialisation
     }
 
-    private PersistenceConfiguration(boolean useTimestampAsVersion,
-                                     Map<String, String> handlers,
-                                     Map<String, Map> handlerConfiguration) {
+    public PersistenceConfiguration(boolean useTimestampAsVersion,
+                                    Map<String, String> handlers,
+                                    Map<String, Map> handlerConfiguration) {
         this.useTimestampAsVersion = useTimestampAsVersion;
         this.handlers = handlers;
         this.handlerConfiguration = handlerConfiguration;

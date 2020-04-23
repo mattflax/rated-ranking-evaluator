@@ -39,7 +39,7 @@ public class EvaluationConfiguration {
         // Do nothing - required for Maven initialisation
     }
 
-    EvaluationConfiguration(boolean async, boolean qAsync, int threadpool) {
+    public EvaluationConfiguration(boolean async, boolean qAsync, int threadpool) {
         this.runAsync = async;
         this.runQueriesAsync = qAsync;
         this.threadpoolSize = threadpool;
