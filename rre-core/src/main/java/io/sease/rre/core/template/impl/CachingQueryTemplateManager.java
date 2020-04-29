@@ -44,7 +44,18 @@ public class CachingQueryTemplateManager implements QueryTemplateManager {
      *                                  directory, or the directory cannot be read.
      */
     public CachingQueryTemplateManager(String templatesFolderPath) throws IllegalArgumentException {
-        this.templatesFolder = new File(templatesFolderPath);
+        this(new File(templatesFolderPath));
+    }
+
+    /**
+     * Initialise the query template manager with a template folder.
+     *
+     * @param templatesFolder the template folder.
+     * @throws IllegalArgumentException if the given folder isn't a directory,
+     *                                  or the directory cannot be read.
+     */
+    public CachingQueryTemplateManager(File templatesFolder) throws IllegalArgumentException {
+        this.templatesFolder = templatesFolder;
         if (!templatesFolder.isDirectory() || !templatesFolder.canRead()) {
             throw new IllegalArgumentException("Unable to read from query template directory " + templatesFolder.getAbsolutePath());
         }

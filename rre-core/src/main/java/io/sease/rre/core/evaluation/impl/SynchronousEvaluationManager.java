@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.sease.rre.core.domain.Query;
 import io.sease.rre.core.evaluation.EvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
 
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,15 +45,15 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
      * @param templateManager    the template manager.
      * @param persistenceManager the persistence manager.
      * @param fields             the fields to return from each query.
-     * @param versions           the query versions to run.
-     * @param versionTimestamp   the version timestamp.
+     * @param versionManager the version manager.
      */
-    public SynchronousEvaluationManager(SearchPlatform platform, QueryTemplateManager templateManager, PersistenceManager persistenceManager, String[] fields, Collection<String> versions, String versionTimestamp) {
-        super(platform, templateManager, persistenceManager, fields, versions, versionTimestamp);
+    public SynchronousEvaluationManager(SearchPlatform platform, QueryTemplateManager templateManager, PersistenceManager persistenceManager, String[] fields, VersionManager versionManager) {
+        super(platform, templateManager, persistenceManager, fields, versionManager);
     }
 
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
+        startRunning();
         queryCount++;
 
         getVersions().forEach(version -> {
@@ -65,6 +65,7 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
         });
 
         completeQuery(query);
+        stopRunning();
     }
 
     @Override
@@ -84,6 +85,6 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
 
     @Override
     public void stop() {
-        super.stop();
+        super.stopRunning();
     }
 }

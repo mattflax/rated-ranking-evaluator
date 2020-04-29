@@ -20,6 +20,7 @@ import io.sease.rre.core.evaluation.impl.AsynchronousEvaluationManager;
 import io.sease.rre.core.evaluation.impl.AsynchronousQueryEvaluationManager;
 import io.sease.rre.core.evaluation.impl.SynchronousEvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.SearchPlatform;
 
@@ -41,8 +42,7 @@ public abstract class EvaluationManagerFactory {
      * @param persistenceManager      the persistence manager.
      * @param templateManager         the template manager.
      * @param fields                  the fields to return from each query.
-     * @param versions                the versions being evaluated.
-     * @param versionTimestamp        the version timestamp, if required.
+     * @param versionManager          the version manager.
      * @return an appropriate {@link EvaluationManager} for the configuration.
      */
     public static EvaluationManager instantiateEvaluationManager(
@@ -51,18 +51,17 @@ public abstract class EvaluationManagerFactory {
             final PersistenceManager persistenceManager,
             final QueryTemplateManager templateManager,
             final String[] fields,
-            final Collection<String> versions,
-            final String versionTimestamp) {
+            final VersionManager versionManager) {
         final EvaluationManager evaluationManager;
 
         if (evaluationConfiguration.isRunAsync()) {
             if (evaluationConfiguration.isRunQueriesAsync()) {
-                evaluationManager = new AsynchronousQueryEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versions, versionTimestamp, evaluationConfiguration.getThreadpoolSize());
+                evaluationManager = new AsynchronousQueryEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versionManager, evaluationConfiguration.getThreadpoolSize());
             } else {
-                evaluationManager = new AsynchronousEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versions, versionTimestamp, evaluationConfiguration.getThreadpoolSize());
+                evaluationManager = new AsynchronousEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versionManager, evaluationConfiguration.getThreadpoolSize());
             }
         } else {
-            evaluationManager = new SynchronousEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versions, versionTimestamp);
+            evaluationManager = new SynchronousEvaluationManager(searchPlatform, templateManager, persistenceManager, fields, versionManager);
         }
 
         return evaluationManager;

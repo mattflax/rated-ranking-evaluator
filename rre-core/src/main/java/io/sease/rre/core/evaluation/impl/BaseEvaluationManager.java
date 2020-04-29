@@ -17,9 +17,9 @@
 package io.sease.rre.core.evaluation.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.sease.rre.core.Engine;
 import io.sease.rre.core.domain.Query;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
@@ -42,8 +42,7 @@ abstract class BaseEvaluationManager {
     private final QueryTemplateManager templateManager;
     private final PersistenceManager persistenceManager;
     private final String[] fields;
-    private final Collection<String> versions;
-    private final String versionTimestamp;
+    private final VersionManager versionManager;
 
     private boolean running;
 
@@ -51,19 +50,17 @@ abstract class BaseEvaluationManager {
                           QueryTemplateManager templateManager,
                           PersistenceManager persistenceManager,
                           String[] fields,
-                          Collection<String> versions,
-                          String versionTimestamp) {
+                          VersionManager versionManager) {
         this.platform = platform;
         this.templateManager = templateManager;
         this.persistenceManager = persistenceManager;
         this.fields = fields;
-        this.versions = versions;
-        this.versionTimestamp = versionTimestamp;
+        this.versionManager = versionManager;
     }
 
 
     Collection<String> getVersions() {
-        return versions;
+        return versionManager.getConfigurationVersions();
     }
 
     QueryOrSearchResponse executeQuery(String indexName, String version, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
@@ -128,14 +125,18 @@ abstract class BaseEvaluationManager {
      * evaluation data).
      */
     String persistVersion(final String configVersion) {
-        return ofNullable(versionTimestamp).orElse(configVersion);
+        return ofNullable(versionManager.getVersionTimestamp()).orElse(configVersion);
+    }
+
+    void startRunning() {
+        this.running = true;
     }
 
     boolean isRunning() {
         return running;
     }
 
-    void stop() {
+    void stopRunning() {
         running = false;
     }
 }

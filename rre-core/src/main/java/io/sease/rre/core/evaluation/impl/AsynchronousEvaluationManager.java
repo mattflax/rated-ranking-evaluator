@@ -20,13 +20,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.sease.rre.core.domain.Query;
 import io.sease.rre.core.evaluation.EvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,23 +51,22 @@ public class AsynchronousEvaluationManager extends BaseEvaluationManager impleme
      * @param templateManager    the template manager.
      * @param persistenceManager the persistence manager.
      * @param fields             the fields to return from each query.
-     * @param versions           the query versions to run.
-     * @param versionTimestamp   the version timestamp.
+     * @param versionManager     the version manager.
      * @param threadpoolSize     the maximum number of threads to use.
      */
     public AsynchronousEvaluationManager(SearchPlatform platform,
                                          QueryTemplateManager templateManager,
                                          PersistenceManager persistenceManager,
                                          String[] fields,
-                                         Collection<String> versions,
-                                         String versionTimestamp,
+                                         VersionManager versionManager,
                                          int threadpoolSize) {
-        super(platform, templateManager, persistenceManager, fields, versions, versionTimestamp);
+        super(platform, templateManager, persistenceManager, fields, versionManager);
         this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadpoolSize);
     }
 
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
+        startRunning();
         evaluateQueryAsync(query, indexName, queryNode, defaultTemplate, relevantDocCount)
                 .thenAccept(this::completeQuery);
     }
@@ -120,7 +119,7 @@ public class AsynchronousEvaluationManager extends BaseEvaluationManager impleme
 
     @Override
     public void stop() {
-        super.stop();
+        super.stopRunning();
         try {
             LOGGER.info("Waiting for asynchronous evaluation threads to stop.");
             executor.shutdown();

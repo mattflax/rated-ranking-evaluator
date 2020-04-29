@@ -18,6 +18,7 @@ package io.sease.rre.core.evaluation.impl;
 
 import io.sease.rre.core.evaluation.EvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.SearchPlatform;
 import org.junit.Test;
@@ -40,18 +41,18 @@ public class AsynchronousEvaluationManagerTest {
     private final QueryTemplateManager templateManager = mock(QueryTemplateManager.class);
     private final String[] fields = new String[0];
     private final Collection<String> versions = Collections.singletonList("v1.0");
-    private final String versionTimestamp = null;
+    private final VersionManager versionManager = new EvaluationManagerQueryTests.HardCodedVersionManager(versions);
 
     @Test(expected = IllegalArgumentException.class)
     public void constructorThrowsException_WhenThreadpoolZero() {
         final int tpoolSize = 0;
-        new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versions, versionTimestamp, tpoolSize);
+        new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versionManager, tpoolSize);
     }
 
     @Test
     public void constructorWorks() {
         final int tpoolSize = 1;
-        final EvaluationManager test = new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versions, versionTimestamp, tpoolSize);
+        final EvaluationManager test = new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versionManager, tpoolSize);
 
         assertNotNull(test);
     }

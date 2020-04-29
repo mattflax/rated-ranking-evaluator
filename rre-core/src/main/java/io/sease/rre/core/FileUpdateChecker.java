@@ -59,8 +59,20 @@ public class FileUpdateChecker {
      * @throws IOException if the file exists and cannot be read.
      */
     public FileUpdateChecker(String checksumFilepath) throws IOException {
-        this.checksumFile = new File(checksumFilepath);
-        checksums = readChecksums();
+        this(new File(checksumFilepath));
+    }
+
+    /**
+     * Initialise the class with a checksum file. The checksums are read
+     * immediately - if the file does not exist, it will be created, otherwise
+     * the checksums will be read from the file.
+     *
+     * @param checksumFile the checksum file in use. Set in config in the pom.xml.
+     * @throws IOException if the file exists and cannot be read.
+     */
+    public FileUpdateChecker(File checksumFile) throws IOException {
+        this.checksumFile = checksumFile;
+        this.checksums = readChecksums();
     }
 
     /**

@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.sease.rre.core.domain.Query;
 import io.sease.rre.core.evaluation.EvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.QueryOrSearchResponse;
 import io.sease.rre.search.api.SearchPlatform;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for synchronous evaluation manager queries.
+ * Unit tests for evaluation manager queries.
  *
  * @author Matt Pearce (matt@flax.co.uk)
  */
@@ -64,6 +66,7 @@ public class EvaluationManagerQueryTests {
     private final QueryTemplateManager templateManager = mock(QueryTemplateManager.class);
     private final String[] fields = new String[0];
     private final Collection<String> versions = Arrays.asList("v1.0", "v1.1");
+    private final VersionManager versionManager = new HardCodedVersionManager(versions);
 
     private Query query;
     private JsonNode queryNode;
@@ -83,7 +86,7 @@ public class EvaluationManagerQueryTests {
 
     @Test
     public void evaluateQuery_synchronous() {
-        final EvaluationManager evaluationManager = new SynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versions, null);
+        final EvaluationManager evaluationManager = new SynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versionManager);
 
         evaluateAndWaitUntilDone(evaluationManager);
 
@@ -93,7 +96,7 @@ public class EvaluationManagerQueryTests {
 
     @Test
     public void evaluateQuery_asynchronous() {
-        final EvaluationManager evaluationManager = new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versions, null, THREADPOOL_SIZE);
+        final EvaluationManager evaluationManager = new AsynchronousEvaluationManager(platform, templateManager, persistenceManager, fields, versionManager, THREADPOOL_SIZE);
 
         evaluateAndWaitUntilDone(evaluationManager);
 
@@ -103,7 +106,7 @@ public class EvaluationManagerQueryTests {
 
     @Test
     public void evaluateQuery_asynchronousQueries() {
-        final EvaluationManager evaluationManager = new AsynchronousQueryEvaluationManager(platform, templateManager, persistenceManager, fields, versions, null, THREADPOOL_SIZE);
+        final EvaluationManager evaluationManager = new AsynchronousQueryEvaluationManager(platform, templateManager, persistenceManager, fields, versionManager, THREADPOOL_SIZE);
 
         evaluateAndWaitUntilDone(evaluationManager);
 
@@ -151,5 +154,31 @@ public class EvaluationManagerQueryTests {
     private static JsonNode buildQueryNode() throws IOException {
         final String qNode = "{ \"template\": \"" + TEMPLATE + "\", \"placeholders\": { \"$query\": \"" + QUERY_TEXT + "\" }}";
         return new ObjectMapper().readTree(qNode);
+    }
+
+    public static class HardCodedVersionManager implements VersionManager {
+        private final Collection<String> versions;
+        public HardCodedVersionManager(Collection<String> versions) {
+            this.versions = versions;
+        }
+
+        @Override
+        public Collection<File> getConfigurationVersionFolders() {
+            return null;
+        }
+
+        @Override
+        public Collection<String> getConfigurationVersions() {
+            return versions;
+        }
+
+        @Override
+        public void addConfigurationVersion(String configVersion) {
+        }
+
+        @Override
+        public String getVersionTimestamp() {
+            return null;
+        }
     }
 }

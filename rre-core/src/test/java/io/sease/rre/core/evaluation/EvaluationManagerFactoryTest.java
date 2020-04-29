@@ -18,8 +18,10 @@ package io.sease.rre.core.evaluation;
 
 import io.sease.rre.core.evaluation.impl.AsynchronousEvaluationManager;
 import io.sease.rre.core.evaluation.impl.AsynchronousQueryEvaluationManager;
+import io.sease.rre.core.evaluation.impl.EvaluationManagerQueryTests;
 import io.sease.rre.core.evaluation.impl.SynchronousEvaluationManager;
 import io.sease.rre.core.template.QueryTemplateManager;
+import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.SearchPlatform;
 import org.junit.Test;
@@ -43,12 +45,12 @@ public class EvaluationManagerFactoryTest {
     private final QueryTemplateManager templateManager = mock(QueryTemplateManager.class);
     private final String[] fields = new String[0];
     private final Collection<String> versions = Collections.singletonList("v1.0");
-    private final String versionTimestamp = null;
+    private final VersionManager versionManager = new EvaluationManagerQueryTests.HardCodedVersionManager(versions);
 
     @Test
     public void instantiateReturnsSynchronous() {
         final EvaluationConfiguration config = new EvaluationConfiguration(false, false, 0);
-        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versions, versionTimestamp);
+        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versionManager);
 
         assertNotNull(test);
         assertTrue(test instanceof SynchronousEvaluationManager);
@@ -57,7 +59,7 @@ public class EvaluationManagerFactoryTest {
     @Test
     public void instantiateReturnsAsynchronous() {
         final EvaluationConfiguration config = new EvaluationConfiguration(true, false, 4);
-        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versions, versionTimestamp);
+        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versionManager);
 
         assertNotNull(test);
         assertTrue(test instanceof AsynchronousEvaluationManager);
@@ -66,7 +68,7 @@ public class EvaluationManagerFactoryTest {
     @Test
     public void instantiateReturnsAsynchronousQuery() {
         final EvaluationConfiguration config = new EvaluationConfiguration(true, true, 4);
-        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versions, versionTimestamp);
+        final EvaluationManager test = EvaluationManagerFactory.instantiateEvaluationManager(config, platform, persistenceManager, templateManager, fields, versionManager);
 
         assertNotNull(test);
         assertTrue(test instanceof AsynchronousQueryEvaluationManager);

@@ -85,8 +85,10 @@ import static java.util.stream.Collectors.toList;
 public class Engine {
     private final static Logger LOGGER = LogManager.getLogger(Engine.class);
 
+    private final File configurationFolder;
     private final File corporaFolder;
     private final File ratingsFolder;
+    private final File templatesFolder;
 
     private final MetricClassManager metricClassManager;
 
@@ -97,7 +99,6 @@ public class Engine {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final PersistenceManager persistenceManager;
-
     private final VersionManager versionManager;
     private final EvaluationManager evaluationManager;
 
@@ -132,8 +133,10 @@ public class Engine {
             final String checksumFilepath,
             final PersistenceConfiguration persistenceConfiguration,
             final EvaluationConfiguration evaluationConfiguration) {
+        this.configurationFolder = new File(configurationsFolderPath);
         this.corporaFolder = corporaFolderPath == null ? null : new File(corporaFolderPath);
         this.ratingsFolder = new File(ratingsFolderPath);
+        this.templatesFolder = new File(templatesFolderPath);
         this.platform = platform;
 
         this.metricClassManager = metricClassManager;
@@ -148,13 +151,48 @@ public class Engine {
                 persistenceManager,
                 new CachingQueryTemplateManager(templatesFolderPath),
                 safe(fields),
-                versionManager.getConfigurationVersions(),
-                versionManager.getVersionTimestamp());
+                versionManager);
 
-        initialiseFileUpdateChecker(checksumFilepath);
+        initialiseFileUpdateChecker(new File(checksumFilepath));
     }
 
-    private void initialiseFileUpdateChecker(String checksumFile) {
+    /**
+     * Build a new Engine instance using specific manager class instances.
+     *
+     * @param searchPlatform      the search platform in use.
+     * @param configurationFolder the folder holding the configurations.
+     * @param corporaFolder       the folder holding the corpora data.
+     * @param ratingsFolder       the folder holding the ratings.
+     * @param templatesFolder     the folder holding the query templates.
+     * @param checksumFile        the file holding the configuration checksums.
+     * @param metricClassManager  the metric manager.
+     * @param persistenceManager  the persistence manager.
+     * @param versionManager      the versions manager.
+     * @param evaluationManager   the evaluation manager.
+     */
+    public Engine(final SearchPlatform searchPlatform,
+                  final File configurationFolder,
+                  final File corporaFolder,
+                  final File ratingsFolder,
+                  final File templatesFolder,
+                  final File checksumFile,
+                  final MetricClassManager metricClassManager,
+                  final PersistenceManager persistenceManager,
+                  final VersionManager versionManager,
+                  final EvaluationManager evaluationManager) {
+        this.platform = searchPlatform;
+        this.configurationFolder = configurationFolder;
+        this.corporaFolder = corporaFolder;
+        this.ratingsFolder = ratingsFolder;
+        this.templatesFolder = templatesFolder;
+        this.metricClassManager = metricClassManager;
+        this.persistenceManager = persistenceManager;
+        this.versionManager = versionManager;
+        this.evaluationManager = evaluationManager;
+        initialiseFileUpdateChecker(checksumFile);
+    }
+
+    private void initialiseFileUpdateChecker(File checksumFile) {
         if (checksumFile != null) {
             try {
                 fileUpdateChecker = new FileUpdateChecker(checksumFile);
@@ -283,7 +321,9 @@ public class Engine {
                 } catch (InterruptedException ignore) {
                 }
             }
-            LOGGER.info("  ... completed all {} evaluations.", evaluationManager.getTotalQueries());
+            LOGGER.info("  ... complete - {} / {} evaluations.",
+                    (evaluationManager.getTotalQueries() - evaluationManager.getQueriesRemaining()),
+                    evaluationManager.getTotalQueries());
 
             return evaluation;
         } finally {
@@ -294,6 +334,10 @@ public class Engine {
             LOGGER.info("RRE: Stopping persistence manager");
             persistenceManager.stop();
         }
+    }
+
+    public boolean isEvaluationInProgress() {
+        return evaluationManager.isRunning();
     }
 
     public void stopEvaluation() {
@@ -454,8 +498,8 @@ public class Engine {
     /**
      * Prepares the search platform with the given index name and dataset.
      *
-     * @param collection the index name.
-     * @param dataToBeIndexed      the dataset.
+     * @param collection      the index name.
+     * @param dataToBeIndexed the dataset.
      */
     private void prepareData(final String collection, final File dataToBeIndexed) {
         if (dataToBeIndexed != null) {
@@ -484,7 +528,7 @@ public class Engine {
         LOGGER.info("RRE: target versions are " + String.join(",", versionManager.getConfigurationVersions()));
     }
 
-    private boolean isConfigurationReloadNecessary( File versionFolder) {
+    private boolean isConfigurationReloadNecessary(File versionFolder) {
         boolean corporaChanged = folderHasChanged(corporaFolder);
         return folderHasChanged(versionFolder) || corporaChanged || platform.isRefreshRequired();
     }
@@ -513,5 +557,5 @@ public class Engine {
         }
     }
 
-    
+
 }
