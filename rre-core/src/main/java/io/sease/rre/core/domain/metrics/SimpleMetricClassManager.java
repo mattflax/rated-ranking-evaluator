@@ -2,7 +2,11 @@ package io.sease.rre.core.domain.metrics;
 
 import io.sease.rre.Func;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Manager class for instantiating metrics configured for evaluation. This

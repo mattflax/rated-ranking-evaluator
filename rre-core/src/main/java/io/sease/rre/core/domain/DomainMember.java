@@ -22,7 +22,12 @@ import io.sease.rre.core.domain.metrics.Metric;
 import io.sease.rre.core.domain.metrics.impl.AveragedMetric;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;

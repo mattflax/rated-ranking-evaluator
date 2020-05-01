@@ -24,8 +24,6 @@ import io.sease.rre.core.version.VersionManager;
 import io.sease.rre.persistence.PersistenceManager;
 import io.sease.rre.search.api.SearchPlatform;
 
-import java.util.Collection;
-
 /**
  * Factory class to instantiate the {@link EvaluationManager} implementation to
  * use to evaluate the queries.

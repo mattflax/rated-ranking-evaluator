@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 import static io.sease.rre.Func.ONLY_DIRECTORIES;
 import static io.sease.rre.Func.safe;
-import static java.util.Arrays.stream;
 
 /**
  * Basic implementation of the VersionManager interface.
