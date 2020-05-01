@@ -21,11 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.sease.rre.Field;
 import io.sease.rre.Func;
-import io.sease.rre.core.domain.Corpus;
-import io.sease.rre.core.domain.Evaluation;
-import io.sease.rre.core.domain.Query;
-import io.sease.rre.core.domain.QueryGroup;
-import io.sease.rre.core.domain.Topic;
+import io.sease.rre.core.domain.*;
 import io.sease.rre.core.domain.metrics.Metric;
 import io.sease.rre.core.domain.metrics.MetricClassManager;
 import io.sease.rre.core.evaluation.EvaluationConfiguration;
@@ -41,11 +37,7 @@ import io.sease.rre.search.api.SearchPlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,20 +48,8 @@ import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static io.sease.rre.Field.CORPORA_FILENAME;
-import static io.sease.rre.Field.DEFAULT_ID_FIELD_NAME;
-import static io.sease.rre.Field.DESCRIPTION;
-import static io.sease.rre.Field.ID_FIELD_NAME;
-import static io.sease.rre.Field.INDEX_NAME;
-import static io.sease.rre.Field.NAME;
-import static io.sease.rre.Field.QUERIES;
-import static io.sease.rre.Field.QUERY_GROUPS;
-import static io.sease.rre.Field.RELEVANT_DOCUMENTS;
-import static io.sease.rre.Field.TOPICS;
-import static io.sease.rre.Field.UNNAMED;
-import static io.sease.rre.Func.ONLY_JSON_FILES;
-import static io.sease.rre.Func.ONLY_NON_HIDDEN_FILES;
-import static io.sease.rre.Func.safe;
+import static io.sease.rre.Field.*;
+import static io.sease.rre.Func.*;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
@@ -536,7 +516,9 @@ public class Engine {
     private boolean folderHasChanged(File folder) {
         boolean ret = true;
 
-        if (fileUpdateChecker != null) {
+        if (folder == null) {
+            ret = false;
+        } else if (fileUpdateChecker != null) {
             try {
                 ret = fileUpdateChecker.directoryHasChanged(folder.getAbsolutePath());
             } catch (IOException e) {
