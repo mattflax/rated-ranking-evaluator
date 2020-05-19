@@ -32,10 +32,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * JSON implementation of the {@link PersistenceHandler} interface.
@@ -55,13 +55,13 @@ public class JsonPersistenceHandler implements PersistenceHandler {
     private String outputFilepath;
     private boolean pretty;
 
-    private List<Query> queries = new ArrayList<>();
+    private final Deque<Query> queries = new LinkedBlockingDeque<>();
 
     @Override
     public void configure(String name, Map<String, Object> configuration) {
         this.name = name;
         this.outputFilepath = configuration.getOrDefault(DESTINATION_FILE_CONFIGKEY, DEFAULT_OUTPUT_FILE).toString();
-        this.pretty = Boolean.valueOf(configuration.getOrDefault(PRETTY_CONFIGKEY, "false").toString());
+        this.pretty = Boolean.parseBoolean(configuration.getOrDefault(PRETTY_CONFIGKEY, "false").toString());
     }
 
     @Override
@@ -113,7 +113,7 @@ public class JsonPersistenceHandler implements PersistenceHandler {
         queries.forEach(Query::notifyCollectedMetrics);
 
         // Retrieve the top level item
-        DomainMember topLevel = findTopLevel();
+        DomainMember<?> topLevel = findTopLevel();
         try {
             // Write out the JSON object
             ObjectMapper mapper = new ObjectMapper();
@@ -132,10 +132,10 @@ public class JsonPersistenceHandler implements PersistenceHandler {
         }
     }
 
-    private DomainMember findTopLevel() {
+    private DomainMember<?> findTopLevel() {
         if (queries.size() > 0) {
             // Get the first query, then iterate through the parents to the top
-            return retrieveParent(queries.get(0)).orElse(new Evaluation());
+            return retrieveParent(queries.getFirst()).orElse(new Evaluation());
         } else {
             // No queries - return an empty Evaluation object
             LOGGER.warn("No queries recorded - returning empty evaluation");
@@ -145,6 +145,7 @@ public class JsonPersistenceHandler implements PersistenceHandler {
 
     @Override
     public void stop() {
-        // Nothing to stop
+        // Empty the query list, in case this might be used more than once (ie. with standalone server).
+        queries.clear();
     }
 }
