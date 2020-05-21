@@ -20,10 +20,8 @@ import io.sease.rre.core.template.QueryTemplateManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * An implementation of the {@link QueryTemplateManager} that will cache the
@@ -31,10 +29,9 @@ import java.util.Optional;
  *
  * @author Matt Pearce (matt@flax.co.uk)
  */
-public class CachingQueryTemplateManager implements QueryTemplateManager {
+public class CachingQueryTemplateManager extends FileQueryTemplateManager implements QueryTemplateManager {
 
     private final Map<File, String> templatePathMap = new HashMap<>();
-    private final File templatesFolder;
 
     /**
      * Initialise the query template manager with template folder path.
@@ -55,58 +52,14 @@ public class CachingQueryTemplateManager implements QueryTemplateManager {
      *                                  or the directory cannot be read.
      */
     public CachingQueryTemplateManager(File templatesFolder) throws IllegalArgumentException {
-        this.templatesFolder = templatesFolder;
-        if (!templatesFolder.isDirectory() || !templatesFolder.canRead()) {
-            throw new IllegalArgumentException("Unable to read from query template directory " + templatesFolder.getAbsolutePath());
-        }
+        super(templatesFolder);
     }
 
     @Override
     public String getTemplate(final String defaultTemplate, final String template, final String version) throws IOException {
-        String templateName = Optional.ofNullable(getTemplate(defaultTemplate, template))
-                .orElseThrow(() -> new IllegalArgumentException("No template name supplied!"));
-        File templatePath = buildTemplatePath(templateName, version);
-        templatePathMap.putIfAbsent(templatePath, readTemplateContent(templatePath));
+        File templateFile = getTemplateFile(defaultTemplate, template, version);
+        templatePathMap.putIfAbsent(templateFile, readTemplateContent(templateFile));
 
-        return templatePathMap.get(templatePath);
-    }
-
-    private String getTemplate(String defaultTemplate, String template) {
-        return template == null ? defaultTemplate : template;
-    }
-
-    private File buildTemplatePath(String template, String version) {
-        final File templateFile;
-
-        if (template.contains(VERSION_PLACEHOLDER)) {
-            templateFile = new File(getVersionedTemplateFolder(version), template.replace(VERSION_PLACEHOLDER, version));
-        } else {
-            templateFile = new File(getVersionedTemplateFolder(version), template);
-        }
-
-        return templateFile;
-    }
-
-    private File getVersionedTemplateFolder(String version) {
-        File versionedFolder = new File(templatesFolder, version);
-        return (versionedFolder.canRead() && versionedFolder.isDirectory()) ? versionedFolder : templatesFolder;
-    }
-
-    /**
-     * Reads a template content.
-     *
-     * @param file the template file.
-     * @return the template content.
-     * @throws IOException      if the file cannot be read.
-     * @throws RuntimeException if other exceptions are thrown (OutOfMemory, SecurityException).
-     */
-    private String readTemplateContent(final File file) throws IOException {
-        try {
-            return new String(Files.readAllBytes(file.toPath()));
-        } catch (final IOException e) {
-            throw e;
-        } catch (final Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        return templatePathMap.get(templateFile);
     }
 }
