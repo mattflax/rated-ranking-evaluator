@@ -85,10 +85,8 @@ import static java.util.stream.Collectors.toList;
 public class Engine {
     private final static Logger LOGGER = LogManager.getLogger(Engine.class);
 
-    private final File configurationFolder;
     private final File corporaFolder;
     private final File ratingsFolder;
-    private final File templatesFolder;
 
     private final MetricClassManager metricClassManager;
 
@@ -133,10 +131,8 @@ public class Engine {
             final String checksumFilepath,
             final PersistenceConfiguration persistenceConfiguration,
             final EvaluationConfiguration evaluationConfiguration) {
-        this.configurationFolder = new File(configurationsFolderPath);
         this.corporaFolder = corporaFolderPath == null ? null : new File(corporaFolderPath);
         this.ratingsFolder = new File(ratingsFolderPath);
-        this.templatesFolder = new File(templatesFolderPath);
         this.platform = platform;
 
         this.metricClassManager = metricClassManager;
@@ -153,17 +149,15 @@ public class Engine {
                 safe(fields),
                 versionManager);
 
-        initialiseFileUpdateChecker(new File(checksumFilepath));
+        initialiseFileUpdateChecker(checksumFilepath == null ? null : new File(checksumFilepath));
     }
 
     /**
      * Build a new Engine instance using specific manager class instances.
      *
      * @param searchPlatform      the search platform in use.
-     * @param configurationFolder the folder holding the configurations.
      * @param corporaFolder       the folder holding the corpora data.
      * @param ratingsFolder       the folder holding the ratings.
-     * @param templatesFolder     the folder holding the query templates.
      * @param checksumFile        the file holding the configuration checksums.
      * @param metricClassManager  the metric manager.
      * @param persistenceManager  the persistence manager.
@@ -171,20 +165,16 @@ public class Engine {
      * @param evaluationManager   the evaluation manager.
      */
     public Engine(final SearchPlatform searchPlatform,
-                  final File configurationFolder,
                   final File corporaFolder,
                   final File ratingsFolder,
-                  final File templatesFolder,
                   final File checksumFile,
                   final MetricClassManager metricClassManager,
                   final PersistenceManager persistenceManager,
                   final VersionManager versionManager,
                   final EvaluationManager evaluationManager) {
         this.platform = searchPlatform;
-        this.configurationFolder = configurationFolder;
         this.corporaFolder = corporaFolder;
         this.ratingsFolder = ratingsFolder;
-        this.templatesFolder = templatesFolder;
         this.metricClassManager = metricClassManager;
         this.persistenceManager = persistenceManager;
         this.versionManager = versionManager;
