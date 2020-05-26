@@ -44,8 +44,6 @@ abstract class BaseEvaluationManager {
     private final String[] fields;
     private final VersionManager versionManager;
 
-    private boolean running;
-
     BaseEvaluationManager(SearchPlatform platform,
                           QueryTemplateManager templateManager,
                           PersistenceManager persistenceManager,
@@ -126,17 +124,5 @@ abstract class BaseEvaluationManager {
      */
     String persistVersion(final String configVersion) {
         return ofNullable(versionManager.getVersionTimestamp()).orElse(configVersion);
-    }
-
-    void startRunning() {
-        this.running = true;
-    }
-
-    boolean isRunning() {
-        return running;
-    }
-
-    void stopRunning() {
-        running = false;
     }
 }

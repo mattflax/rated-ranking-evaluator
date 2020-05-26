@@ -53,7 +53,6 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
 
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
-        startRunning();
         queryCount++;
 
         getVersions().forEach(version -> {
@@ -65,12 +64,11 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
         });
 
         completeQuery(query);
-        stopRunning();
     }
 
     @Override
     public boolean isRunning() {
-        return super.isRunning();
+        return false;
     }
 
     @Override
@@ -81,10 +79,5 @@ public class SynchronousEvaluationManager extends BaseEvaluationManager implemen
     @Override
     public int getTotalQueries() {
         return queryCount;
-    }
-
-    @Override
-    public void stop() {
-        super.stopRunning();
     }
 }

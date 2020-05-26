@@ -31,7 +31,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -70,7 +69,6 @@ public class AsynchronousQueryEvaluationManager extends BaseEvaluationManager im
 
     @Override
     public void evaluateQuery(Query query, String indexName, JsonNode queryNode, String defaultTemplate, int relevantDocCount) {
-        startRunning();
         evaluateQueryAsync(query, indexName, queryNode, defaultTemplate, relevantDocCount)
                 .thenAccept(this::completeQuery);
     }
@@ -121,28 +119,5 @@ public class AsynchronousQueryEvaluationManager extends BaseEvaluationManager im
     @Override
     public int getTotalQueries() {
         return (int) executor.getTaskCount();
-    }
-
-    @Override
-    public void stop() {
-        super.stopRunning();
-        try {
-            LOGGER.info("Waiting for asynchronous query evaluation threads to stop.");
-            queryExecutor.shutdown();
-            executor.shutdown();
-            if (executor.awaitTermination(30, TimeUnit.SECONDS) && queryExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
-                LOGGER.info("  ... all threads stopped within timeout period.");
-            } else {
-                LOGGER.info("  ... forcing executor shutdown.");
-                if (!queryExecutor.isShutdown()) {
-                    queryExecutor.shutdownNow();
-                }
-                if (!executor.isShutdown()) {
-                    executor.shutdownNow();
-                }
-            }
-        } catch (InterruptedException e) {
-            LOGGER.warn("Interrupted waiting for asynchronous query evaluation threads to stop.");
-        }
     }
 }

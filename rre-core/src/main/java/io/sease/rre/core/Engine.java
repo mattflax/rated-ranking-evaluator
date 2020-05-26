@@ -326,15 +326,6 @@ public class Engine {
         }
     }
 
-    public boolean isEvaluationInProgress() {
-        return evaluationManager.isRunning();
-    }
-
-    public void stopEvaluation() {
-        LOGGER.info("Stopping all current evaluations.");
-        evaluationManager.stop();
-    }
-
     private Optional<File> data(final JsonNode ratingsNode) {
         final File retFile;
 
