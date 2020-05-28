@@ -22,7 +22,12 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,6 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Matt Pearce (matt@elysiansoftware.co.uk)
  */
 public class AveragedMetricMultiThreadTestCase {
+
+    private static final int NUM_THREADS = 8;
 
     private List<String> versions;
 
@@ -60,11 +67,18 @@ public class AveragedMetricMultiThreadTestCase {
     }
 
     @Test
-    public void multiThreadTest() {
+    public void multiThreadTest() throws Exception {
         AveragedMetric am = new AveragedMetric("test");
 
-        for (String v : versions) {
-            new Thread(() -> am.collect(v, BigDecimal.ONE)).start();
+        ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
+        Collection<Future<?>> futures = versions.stream()
+                .map(v -> new Thread(() -> am.collect(v, BigDecimal.ONE)))
+                .map(executorService::submit)
+                .collect(Collectors.toList());
+        for (Future<?> f : futures) {
+            if (!f.isDone()) {
+                Thread.sleep(10);
+            }
         }
 
         assertThat(am.getVersions().keySet()).containsAll(versions);
