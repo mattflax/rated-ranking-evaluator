@@ -81,7 +81,7 @@ public class EngineEvaluationTest {
     private final SearchPlatform searchPlatform = mock(SearchPlatform.class);
     private final File corporaFolder = null;
     private final File ratingsFolder = new File(RATINGS_FOLDER_PATH);
-    private final String checksumFilepath = null;
+    private final File checksumFilepath = null;
     private final QueryTemplateManager templateManager = new CachingQueryTemplateManager(TEMPLATES_FOLDER_PATH);
     private final PersistenceManager persistenceManager = mock(PersistenceManager.class);
 
@@ -137,7 +137,7 @@ public class EngineEvaluationTest {
         final EvaluationConfiguration evaluationConfiguration = mock(EvaluationConfiguration.class);
         when(evaluationConfiguration.isRunAsync()).thenReturn(false);
         EvaluationManager evaluationManager = EvaluationManagerFactory.instantiateEvaluationManager(evaluationConfiguration,
-                searchPlatform, persistenceManager, templateManager, FIELDS, versions, null);
+                searchPlatform, persistenceManager, templateManager, FIELDS, versionManager);
 
         final Engine engine = new Engine(searchPlatform, corporaFolder, ratingsFolder, checksumFilepath,
                 metricClassManager, persistenceManager, versionManager, evaluationManager);
@@ -154,7 +154,7 @@ public class EngineEvaluationTest {
         when(evaluationConfiguration.isRunQueriesAsync()).thenReturn(false);
         when(evaluationConfiguration.getThreadpoolSize()).thenReturn(THREADPOOL_SIZE);
         EvaluationManager evaluationManager = EvaluationManagerFactory.instantiateEvaluationManager(evaluationConfiguration,
-                searchPlatform, persistenceManager, templateManager, FIELDS, versions, null);
+                searchPlatform, persistenceManager, templateManager, FIELDS, versionManager);
 
         final Engine engine = new Engine(searchPlatform, corporaFolder, ratingsFolder, checksumFilepath,
                 metricClassManager, persistenceManager, versionManager, evaluationManager);
@@ -171,7 +171,7 @@ public class EngineEvaluationTest {
         when(evaluationConfiguration.isRunQueriesAsync()).thenReturn(true);
         when(evaluationConfiguration.getThreadpoolSize()).thenReturn(THREADPOOL_SIZE);
         EvaluationManager evaluationManager = EvaluationManagerFactory.instantiateEvaluationManager(evaluationConfiguration,
-                searchPlatform, persistenceManager, templateManager, FIELDS, versions, null);
+                searchPlatform, persistenceManager, templateManager, FIELDS, versionManager);
 
         final Engine engine = new Engine(searchPlatform, corporaFolder, ratingsFolder, checksumFilepath,
                 metricClassManager, persistenceManager, versionManager, evaluationManager);
