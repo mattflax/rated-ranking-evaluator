@@ -46,7 +46,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +96,7 @@ public class Engine {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final PersistenceManager persistenceManager;
+
     private final VersionManager versionManager;
     private final EvaluationManager evaluationManager;
 
@@ -153,26 +153,28 @@ public class Engine {
     }
 
     /**
-     * Build a new Engine instance using specific manager class instances.
+     * Fully parameterised constructor, does no initialisation apart from
+     * setting up the checksum file, if required.
      *
-     * @param searchPlatform      the search platform in use.
-     * @param corporaFolder       the folder holding the corpora data.
-     * @param ratingsFolder       the folder holding the ratings.
-     * @param checksumFile        the file holding the configuration checksums.
-     * @param metricClassManager  the metric manager.
-     * @param persistenceManager  the persistence manager.
-     * @param versionManager      the versions manager.
-     * @param evaluationManager   the evaluation manager.
+     * @param platform           the search platform.
+     * @param corporaFolder      the folder holding the corpora data (optional).
+     * @param ratingsFolder      the folder holding the ratings details.
+     * @param checksumFile       the path to the checksum file (optional).
+     * @param metricClassManager a fully initialised metric class manager.
+     * @param persistenceManager a fully initialised persistence manager.
+     * @param versionManager     a fully initialised version manager.
+     * @param evaluationManager  a fully initialised evaluation manager.
      */
-    public Engine(final SearchPlatform searchPlatform,
-                  final File corporaFolder,
-                  final File ratingsFolder,
-                  final File checksumFile,
-                  final MetricClassManager metricClassManager,
-                  final PersistenceManager persistenceManager,
-                  final VersionManager versionManager,
-                  final EvaluationManager evaluationManager) {
-        this.platform = searchPlatform;
+    public Engine(
+            final SearchPlatform platform,
+            final File corporaFolder,
+            final File ratingsFolder,
+            final File checksumFile,
+            final MetricClassManager metricClassManager,
+            final PersistenceManager persistenceManager,
+            final VersionManager versionManager,
+            final EvaluationManager evaluationManager) {
+        this.platform = platform;
         this.corporaFolder = corporaFolder;
         this.ratingsFolder = ratingsFolder;
         this.metricClassManager = metricClassManager;
